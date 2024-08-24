@@ -83,11 +83,11 @@ public class CircleButton extends JButton{
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         GradientPaint gradient;
         if (mousePressed) {
-            gradient = new GradientPaint(0, 0, Color.GRAY, 0, getHeight(), Color.DARK_GRAY);
+            gradient = new GradientPaint(0, 0, new Color(141, 158, 154), 0, getHeight(), new Color(141, 160, 154));
         } else if (mouseOver) {
-            gradient = new GradientPaint(0, 0, Color.CYAN, 0, getHeight(), Color.BLUE);
+            gradient = new GradientPaint(0, 0, new Color(166, 182, 219), 0, getHeight(), new Color(166, 182, 219));
         } else {
-            gradient = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), Color.LIGHT_GRAY);
+            gradient = new GradientPaint(0, 0, new Color(151, 196, 182), 0, getHeight(), new Color(151, 196, 182));
         }
         g2d.setPaint(gradient);
         g2d.fillOval(getWidth() / 2 - radius, getHeight() / 2 - radius, diameter, diameter);

@@ -3,14 +3,36 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.lang.*;
+import javax.swing.UIManager;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 
 public class DrawingPanel extends JPanel {
-    private java.util.List<Shape> shapes = new java.util.ArrayList<>();
+    public java.util.List<Shape> shapes = new java.util.ArrayList<>();
     private Shape draggedShape = null;
     private Point previousPoint;
+    public Shape selectedShape = null;
+    public int width, height;
     public DrawingPanel(int width, int height) {
+        this.width = width;
+        this.height = height;
         setPreferredSize(new Dimension(width, height));
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        JMenuItem cloneItem = new JMenuItem("Clone");
+        JMenuItem resizeItem = new JMenuItem("Resize");
+        JMenuItem editLabel = new JMenuItem("Edit Label");
+        JMenuItem editColor = new JMenuItem("Edit Color");
+        deleteItem.addActionListener(new DeleteActionListener(shapes, this));
+        cloneItem.addActionListener(new CloneActionListener(shapes, this));
+        resizeItem.addActionListener(new ResizeActionListener(this));
+        editLabel.addActionListener(new EditLabelActionListener(this));
+        editColor.addActionListener(new EditColorActionListener(this));
+        popupMenu.add(cloneItem);
+        popupMenu.add(deleteItem);
+        popupMenu.add(resizeItem);
+        popupMenu.add(editLabel);
+        popupMenu.add(editColor);
         MouseAdapter ma = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -18,8 +40,13 @@ public class DrawingPanel extends JPanel {
                     if (s.contains(e.getPoint())) {
                         draggedShape = s;
                         previousPoint = e.getPoint();
+                        if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1){
+                            selectedShape = s;
+                            popupMenu.show(DrawingPanel.this, e.getX(), e.getY());
+                        }
                         break;
-                    }
+                    }   
+
                 }
             }
 
@@ -89,13 +116,154 @@ public class DrawingPanel extends JPanel {
 
     }
 }
+class DeleteActionListener implements ActionListener {
+    private java.util.List<Shape> shapes;
+    private DrawingPanel drawingPanel;
+
+    public DeleteActionListener(java.util.List<Shape> shapes, DrawingPanel drawingPanel) {
+        this.shapes = shapes;
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.messageForeground", Color.WHITE);
+        UIManager.put("Button.background", new Color(102,102,102));
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
+        UIManager.put("OptionPane.background", new Color(50,50,50));
+        UIManager.put("Panel.background", new Color(50,50,50));
+        UIManager.put("InternalFrame.background", new Color(50,50,50));
+        int option = JOptionPane.showConfirmDialog(drawingPanel, "Are you sure you want to delete this shape?", "Delete Shape", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (option == JOptionPane.OK_OPTION) {
+            shapes.remove(drawingPanel.selectedShape);
+            DrawingTester.updateTotalAreaLabel(drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
+            drawingPanel.selectedShape = null;
+            drawingPanel.repaint();
+        }
+    }
+}
+
+class CloneActionListener implements ActionListener {
+    private java.util.List<Shape> shapes;
+    private DrawingPanel drawingPanel;
+
+    public CloneActionListener(java.util.List<Shape> shapes, DrawingPanel drawingPanel) {
+        this.shapes = shapes;
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        
+        if ((int)drawingPanel.selectedShape.width*2+(int)drawingPanel.selectedShape.x+1< drawingPanel.width){
+        shapes.add(new Shape((int)drawingPanel.selectedShape.width,(int)drawingPanel.selectedShape.height, 
+        (int)drawingPanel.selectedShape.x+(int)drawingPanel.selectedShape.width+1,(int)drawingPanel.selectedShape.y, 
+                            drawingPanel.selectedShape.color, drawingPanel.selectedShape.room_label));
+                        }
+        else{
+        shapes.add(new Shape((int)drawingPanel.selectedShape.width,(int)drawingPanel.selectedShape.height, 
+        (int)drawingPanel.selectedShape.x,(int)drawingPanel.selectedShape.y+drawingPanel.selectedShape.height+1, 
+                            drawingPanel.selectedShape.color, drawingPanel.selectedShape.room_label));
+        }
+        DrawingTester.updateTotalAreaLabel(-drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
+        drawingPanel.repaint();
+    }
+}
+
+class ResizeActionListener implements ActionListener{
+    private DrawingPanel drawingPanel;
+
+    public ResizeActionListener(DrawingPanel drawingPanel){
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e){
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.messageForeground", Color.WHITE);
+        UIManager.put("Button.background", new Color(102,102,102));
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
+        UIManager.put("OptionPane.background", new Color(50,50,50));
+        UIManager.put("Panel.background", new Color(50,50,50));
+        UIManager.put("InternalFrame.background", new Color(50,50,50));
+        
+        
+        String lengthString = JOptionPane.showInputDialog(drawingPanel,"Enter the length of box:","LENGTH",JOptionPane.QUESTION_MESSAGE);
+        String breadthString = JOptionPane.showInputDialog(drawingPanel,"Enter the width of box","WIDTH",JOptionPane.QUESTION_MESSAGE);
+
+        
+        
+        if (lengthString != null && breadthString != null){
+        int length = Integer.parseInt(lengthString);
+        int breadth = Integer.parseInt(breadthString);
+        DrawingTester.updateTotalAreaLabel(drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
+        drawingPanel.selectedShape.width = breadth;
+        drawingPanel.selectedShape.height = length;
+        DrawingTester.updateTotalAreaLabel(-drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
+        drawingPanel.repaint();
+        }
+        else{
+            JOptionPane.showMessageDialog(drawingPanel, "Enter valid values for length and breadth.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+class EditLabelActionListener implements ActionListener{
+    private DrawingPanel drawingPanel;
+
+    public EditLabelActionListener(DrawingPanel drawingPanel){
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e){
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.messageForeground", Color.WHITE);
+        UIManager.put("Button.background", new Color(102,102,102));
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
+        UIManager.put("OptionPane.background", new Color(50,50,50));
+        UIManager.put("Panel.background", new Color(50,50,50));
+        UIManager.put("InternalFrame.background", new Color(50,50,50));
+        
+        String newLabel = JOptionPane.showInputDialog(drawingPanel,"Enter the new label:");
+        if (newLabel != null){
+            drawingPanel.selectedShape.room_label = newLabel;
+            drawingPanel.repaint();
+        }
+        else{
+            JOptionPane.showMessageDialog(drawingPanel, "No label entered.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+class EditColorActionListener implements ActionListener{
+    private DrawingPanel drawingPanel;
+
+    public EditColorActionListener(DrawingPanel drawingPanel){
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e){        
+        Color color = JColorChooser.showDialog(drawingPanel, "Choose a color for the shape", Color.BLACK);
+        drawingPanel.selectedShape.color = color;
+        drawingPanel.repaint();
+    }
+}
 
 class Shape {
     int width, height;
     int x, y;
     int x_label, y_label;
-    private Color color;
-    private String room_label;
+    public Color color;
+    public String room_label;
 
     public Shape(int w, int h, int x, int y, Color color, String room_label) {
         this.width = w;
