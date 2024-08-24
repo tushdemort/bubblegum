@@ -12,7 +12,7 @@ public class DrawingTester {
         int h = 1080;
         JFrame f = new JFrame("BubbleGum");
         DrawingPanel panel = new DrawingPanel(w, h);
-        totalAreaLabel = new JLabel("Total Floor Area: 0");
+        totalAreaLabel = new JLabel("Total Floor Area: 0 sq.ft");
         totalAreaLabel.setBounds(10, 10, 200, 30);
         panel.add(totalAreaLabel);
         CircleButton circleButton = new CircleButton("+");
@@ -53,7 +53,7 @@ public class DrawingTester {
     }
     private static void updateTotalArea(int length, int breadth) {
         totalArea += length * breadth;
-        totalAreaLabel.setText("Total Floor Area: " + totalArea/100);
+        totalAreaLabel.setText("Total Floor Area: " + totalArea/100 + " sq.ft");
     }
 }
 
