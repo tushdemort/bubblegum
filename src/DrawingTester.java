@@ -53,7 +53,7 @@ public class DrawingTester {
     }
     private static void updateTotalArea(int length, int breadth) {
         totalArea += length * breadth;
-        totalAreaLabel.setText("Total Floor Area: " + totalArea);
+        totalAreaLabel.setText("Total Floor Area: " + totalArea/100);
     }
 }
 
