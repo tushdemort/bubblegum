@@ -97,12 +97,12 @@ class Shape {
     private Color color;
     private String room_label;
 
-    public Shape(int w, int h, int x, int y, int r, int g, int b, String room_label) {
+    public Shape(int w, int h, int x, int y, Color color, String room_label) {
         this.width = w;
         this.height = h;
         this.x = x;
         this.y = y;
-        this.color = new Color(r, g, b);
+        this.color =  color;
         this.room_label = room_label;
     }
 
