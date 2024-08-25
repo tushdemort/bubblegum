@@ -5,6 +5,11 @@ import java.awt.geom.*;
 import java.lang.*;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicButtonUI;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class DrawingPanel extends JPanel {
@@ -18,6 +23,16 @@ public class DrawingPanel extends JPanel {
         this.height = height;
         setPreferredSize(new Dimension(width, height));
         JPopupMenu popupMenu = new JPopupMenu();
+        JPopupMenu mainPopup = new JPopupMenu();
+        
+        //Main Menu
+        JMenuItem saveFile = new JMenuItem("Save File");
+        JMenuItem loadFile  = new JMenuItem("Load File");
+        saveFile.addActionListener(new SaveActionListner(shapes,this));
+        loadFile.addActionListener(new LoadActionListener(shapes,this));
+        mainPopup.add(saveFile);
+        mainPopup.add(loadFile);
+        //Shape Menu
         JMenuItem deleteItem = new JMenuItem("Delete");
         JMenuItem cloneItem = new JMenuItem("Clone");
         JMenuItem resizeItem = new JMenuItem("Resize");
@@ -45,9 +60,13 @@ public class DrawingPanel extends JPanel {
                             popupMenu.show(DrawingPanel.this, e.getX(), e.getY());
                         }
                         break;
+                    }
+                    else if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1){
+                        mainPopup.show(DrawingPanel.this,e.getX(),e.getY());
                     }   
 
                 }
+
             }
 
             @Override
@@ -116,6 +135,104 @@ public class DrawingPanel extends JPanel {
 
     }
 }
+
+class SaveActionListner implements ActionListener{
+    private java.util.List<Shape> shapes;
+    private DrawingPanel drawingPanel;
+
+    public SaveActionListner(java.util.List<Shape> shapes, DrawingPanel drawingPanel){
+        this.shapes = shapes;
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e){
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.messageForeground", Color.WHITE);
+        UIManager.put("Button.background", new Color(102,102,102));
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
+        UIManager.put("OptionPane.background", new Color(50,50,50));
+        UIManager.put("Panel.background", new Color(50,50,50));
+        UIManager.put("InternalFrame.background", new Color(50,50,50));
+        List<Map<String, Object>> data = new ArrayList<>();
+        for (Shape s : shapes){
+            Map<String, Object> obj1 = new HashMap<>();
+            obj1.put("x",String.valueOf(s.x));
+            obj1.put("y",String.valueOf(s.y));
+            obj1.put("width",String.valueOf(s.width));
+            obj1.put("height",String.valueOf(s.height));
+            // Save color as RGB values
+            obj1.put("color", s.color.getRGB());
+            obj1.put("room_label",String.valueOf(s.room_label));
+            data.add(obj1);
+
+        }
+        try {
+            String filename = JOptionPane.showInputDialog(drawingPanel, "Enter the filename to save the file as:");
+            boolean extension = filename.endsWith(".rmap");
+            if (extension){
+                RMapFile.writeRMap(filename, data);
+                JOptionPane.showMessageDialog(drawingPanel, "File saved successfully", "Success", JOptionPane.INFORMATION_MESSAGE);  
+            }
+            else{
+                JOptionPane.showMessageDialog(drawingPanel, "Invalid file extension", "Error", JOptionPane.ERROR_MESSAGE);  
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            // Or handle the exception as appropriate for your application
+        }
+    }
+}
+class LoadActionListener implements  ActionListener{
+    private java.util.List<Shape> shapes;
+    private DrawingPanel drawingPanel;
+
+    public LoadActionListener(java.util.List<Shape> shapes, DrawingPanel drawingPanel){
+        this.shapes = shapes;
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public  void actionPerformed(ActionEvent e){
+        try{
+            UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+            UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+            UIManager.put("OptionPane.messageForeground", Color.WHITE);
+            UIManager.put("Button.background", new Color(102,102,102));
+            UIManager.put("Button.foreground", Color.WHITE);
+            UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
+            UIManager.put("OptionPane.background", new Color(50,50,50));
+            UIManager.put("Panel.background", new Color(50,50,50));
+            UIManager.put("InternalFrame.background", new Color(50,50,50));
+        String filename = JOptionPane.showInputDialog(drawingPanel, "Enter the filename to load the file from:");
+        boolean extension = filename.endsWith(".rmap");
+        if (extension){
+            List<Map<String, Object>> readData = RMapFile.readRMap(filename);
+            shapes.clear();
+        for (Map<String, Object> obj : readData){
+            int x = Integer.parseInt((String) obj.get("x"));
+            int y = Integer.parseInt((String) obj.get("y"));
+            int width = Integer.parseInt((String) obj.get("width"));
+            int height = Integer.parseInt((String) obj.get("height"));
+            // Load color from RGB value
+            Color color = new Color((int) obj.get("color"));
+            String room_label = (String) obj.get("room_label");
+            shapes.add(new Shape(width, height, x, y, color, room_label));
+            }
+        }
+        else{
+            JOptionPane.showMessageDialog(drawingPanel, "Invalid file extension", "Error", JOptionPane.ERROR_MESSAGE);  
+        }
+        drawingPanel.repaint();
+        } catch (IOException ex){
+            JOptionPane.showMessageDialog(drawingPanel, "File not found", "Error", JOptionPane.ERROR_MESSAGE);  
+            ex.printStackTrace();
+        }
+
+    }
+}
 class DeleteActionListener implements ActionListener {
     private java.util.List<Shape> shapes;
     private DrawingPanel drawingPanel;
@@ -171,6 +288,7 @@ class CloneActionListener implements ActionListener {
         DrawingTester.updateTotalAreaLabel(-drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
         drawingPanel.repaint();
     }
+    
 }
 
 class ResizeActionListener implements ActionListener{
