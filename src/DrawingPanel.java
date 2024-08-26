@@ -100,6 +100,47 @@ public class DrawingPanel extends JPanel {
         shapes.add(shape);
     }
     private boolean canMove(Shape movingShape, int dx, int dy) {
+    Rectangle newBounds = new Rectangle(
+        movingShape.x + dx,
+        movingShape.y + dy,
+        movingShape.width,
+        movingShape.height
+    );
+
+    for (Shape otherShape : shapes) {
+        if (otherShape != movingShape) {
+            Rectangle otherBounds = new Rectangle(
+                otherShape.x,
+                otherShape.y,
+                otherShape.width,
+                otherShape.height
+            );
+            if (newBounds.intersects(otherBounds)) {
+
+                int overlapX = Math.min(newBounds.x + newBounds.width, otherBounds.x + otherBounds.width) - 
+                               Math.max(newBounds.x, otherBounds.x);
+                int overlapY = Math.min(newBounds.y + newBounds.height, otherBounds.y + otherBounds.height) - 
+                               Math.max(newBounds.y, otherBounds.y);
+
+                if (overlapX < overlapY) {
+                    if (dx > 0) { 
+                        movingShape.translate(-overlapX, 0); 
+                    } else if (dx < 0) { 
+                        movingShape.translate(overlapX, 0); 
+                    }
+                } else {
+                    if (dy > 0) { 
+                        movingShape.translate(0, -overlapY); 
+                    } else if (dy < 0) {
+                        movingShape.translate(0, overlapY); 
+                    }
+                }
+                return false; 
+            }
+        }
+    }
+    return true; 
+    /*private boolean canMove(Shape movingShape, int dx, int dy) {
         Rectangle newBounds = new Rectangle(
             movingShape.x + dx,
             movingShape.y + dy,
@@ -121,7 +162,8 @@ public class DrawingPanel extends JPanel {
             }
         }
         return true;
-    }
+    }*/
+}
 
     @Override
     protected void paintComponent(Graphics g) {
