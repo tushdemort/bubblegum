@@ -18,7 +18,7 @@ Meanwhile, the compiled output files will be generated in the `bin` folder by de
 The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
 
 ## To Add
-toolbar at top
+toolbar at top - tdm
 inside toolbar{
     file{
         new,save,save,load
@@ -31,6 +31,9 @@ inside toolbar{
     }
 }
 hover over measurement
-zoom
+furniture(taable,sofa,counter,wardrobe) - chirag
+zoom+grid line - nema
+floor - kshitij
+custom room - mohta
 relative postitioning: abhi ni krna
 
