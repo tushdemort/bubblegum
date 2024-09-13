@@ -3,7 +3,7 @@
 ## Depth 4,2 Head 4,8
 
 | Model                             | Download | Params |
-| --------------------------------- | :--------: | :-------: | 
+| --------------------------------- | :--------: | :-------: |
 | Cross Attention Interleaving             | [link](https:google.com)  |   5.33M |
 | Cross Attention Continuous               | [link](https:google.com)  |   5.36M |
 | Self Attention Interleaving              | [link](https:google.com)  |   5.33M |
@@ -15,7 +15,8 @@
 
 ### Heads have no effect on param size
 
-| Model                                    | Link                      | Params  |
+| Model                             | Download | Params |
+| --------------------------------- | :--------: | :-------: |
 | Cross Attention Interleaving             | [link](https:google.com)  |   5.33M |
 | Cross Attention Continuous               | [link](https:google.com)  |   5.36M |
 | Self Attention Interleaving              | [link](https:google.com)  |   5.33M |
@@ -24,7 +25,9 @@
 | Cross & Self Attention Continuous        | [link](https:google.com)  |   5.36M |
 
 ## No Attention
-| Model                                    | Link                      | Params  |
+
+| Model                             | Download | Params |
+| --------------------------------- | :--------: | :-------: |
 | Depth-1                                  | [link](https:google.com)  |   4.43M |
 | Depth-3                                  | [link](https:google.com)  |   4.77M |
 | Depth-6                                  | [link](https:google.com)  |   5.27M |
@@ -32,7 +35,9 @@
 
 ##  Extra
 ### These checkpoints are for Cross Attention Interleaving
-| Model                                    | Link                      | Params  |
+
+| Model                             | Download | Params |
+| --------------------------------- | :--------: | :-------: |
 | Depth-4,2 Head-8,16                      | [link](https:google.com)  |   5.55M |
 | Depth-8,4 Head-8,16                      | [link](https:google.com)  |   6.34  |
 
