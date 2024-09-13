@@ -2,7 +2,8 @@
 
 ## Depth 4,2 Head 4,8
 
-| Model                                    | Link                      | Params  |
+| Model                             | Params (M) | Time (ms) |                           Download                           |
+| --------------------------------- | :--------: | :-------: | :----------------------------------------------------------: |
 | Cross Attention Interleaving             | [link](https:google.com)  |   5.33M |
 | Cross Attention Continuous               | [link](https:google.com)  |   5.36M |
 | Self Attention Interleaving              | [link](https:google.com)  |   5.33M |
