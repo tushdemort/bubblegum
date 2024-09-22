@@ -3,23 +3,43 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.lang.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DrawingTester {
     public static double totalArea = 0; 
     private static JLabel totalAreaLabel;
+    private static List<DrawingPanel> floors = new ArrayList<>();
+    private static JPanel sidebarPanel;
+    private static JPanel mainPanel;
+    private static int currentFloor = 0;
+
     public static void main(String[] args) {
         int w = 1920;
         int h = 1080;
         JFrame f = new JFrame("BubbleGum");
-        DrawingPanel panel = new DrawingPanel(w, h);
+        
+        mainPanel = new JPanel(new BorderLayout());
+        sidebarPanel = new JPanel();
+        sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
+        sidebarPanel.setBackground(new Color(50, 50, 50));
+        sidebarPanel.setPreferredSize(new Dimension(150, h));
+
+        addNewFloorButton();
+
+        DrawingPanel panel = new DrawingPanel(w - 150, h);
+        floors.add(panel);
+        addFloorButton("Floor 1", 0);
+
         totalAreaLabel = new JLabel("Total Floor Area: 0 sq.ft");
         totalAreaLabel.setBounds(10, 10, 200, 30);
         totalAreaLabel.setForeground(Color.WHITE);
         panel.add(totalAreaLabel);
         panel.setBackground(new Color(75,75,75));
+
         CircleButton circleButton = new CircleButton("+");
-		circleButton.addActionListener(new ActionListener(){
-			@Override	
+        circleButton.addActionListener(new ActionListener(){
+            @Override	
             public void actionPerformed(ActionEvent e){
                 UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
                 UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
@@ -58,15 +78,59 @@ public class DrawingTester {
                     }
                     
 				}
-		});
+        });
+
         panel.setLayout(null);
-        circleButton.setBounds(1800,525,50,50);
+        circleButton.setBounds(1700, 525, 50, 50);
         panel.add(circleButton);
-        f.setContentPane(panel);
+
+        mainPanel.add(sidebarPanel, BorderLayout.WEST);
+        mainPanel.add(panel, BorderLayout.CENTER);
+
+        f.setContentPane(mainPanel);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.pack();
+        f.setSize(w, h);
         f.setVisible(true);
     }
+
+    private static void addFloorButton(String text, int floorIndex) {
+        JButton floorButton = new JButton(text);
+        floorButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        floorButton.setMaximumSize(new Dimension(130, 40));
+        floorButton.addActionListener(e -> switchToFloor(floorIndex));
+        sidebarPanel.add(floorButton);
+        sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        sidebarPanel.revalidate();
+        sidebarPanel.repaint();
+    }
+
+    private static void addNewFloorButton() {
+        JButton newFloorButton = new JButton("Add New Floor");
+        newFloorButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        newFloorButton.setMaximumSize(new Dimension(130, 40));
+        newFloorButton.addActionListener(e -> createNewFloor());
+        sidebarPanel.add(newFloorButton);
+        sidebarPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+    }
+
+    private static void createNewFloor() {
+        int floorNumber = floors.size() + 1;
+        DrawingPanel newPanel = new DrawingPanel(1770, 1080);
+        newPanel.setBackground(new Color(75, 75, 75));
+        floors.add(newPanel);
+        
+        addFloorButton("Floor " + floorNumber, floorNumber - 1);
+        switchToFloor(floorNumber - 1);
+    }
+
+    private static void switchToFloor(int floorIndex) {
+        currentFloor = floorIndex;
+        mainPanel.remove(1);
+        mainPanel.add(floors.get(floorIndex), BorderLayout.CENTER);
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    }
+
     private static void updateTotalArea(int length, int breadth) {
         totalArea += length * breadth/100;
         totalAreaLabel.setText("Total Floor Area: " + totalArea + " sq.ft");
