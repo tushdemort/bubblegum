@@ -139,5 +139,9 @@ public class DrawingTester {
         totalArea -= area;
         totalAreaLabel.setText("Total Floor Area: " + (totalArea) + " sq.ft");
     }
+    public static void setzeroArea(){
+        totalArea=0;
+        totalAreaLabel.setText("Total Floor Area: " + (totalArea) + " sq.ft");
+    }
 }
 

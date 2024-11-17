@@ -1,15 +1,13 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
-import java.lang.*;
-import javax.swing.UIManager;
-import javax.swing.plaf.basic.BasicButtonUI;
 import java.io.IOException;
+import java.lang.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.*;
 
 
 public class DrawingPanel extends JPanel {
@@ -28,10 +26,34 @@ public class DrawingPanel extends JPanel {
         //Main Menu
         JMenuItem saveFile = new JMenuItem("Save File");
         JMenuItem loadFile  = new JMenuItem("Load File");
+        JMenuItem clearAllShapes = new JMenuItem("Clear All Shapes");
         saveFile.addActionListener(new SaveActionListner(shapes,this));
         loadFile.addActionListener(new LoadActionListener(shapes,this));
+        // clearAllShapes.addActionListener(new clearallListener(shapes,this));
+        clearAllShapes.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+                UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+                UIManager.put("OptionPane.messageForeground", Color.WHITE);
+                UIManager.put("Button.background", new Color(102,102,102));
+                UIManager.put("Button.foreground", Color.WHITE);
+                UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
+                UIManager.put("OptionPane.background", new Color(50,50,50));
+                UIManager.put("Panel.background", new Color(50,50,50));
+                UIManager.put("InternalFrame.background", new Color(50,50,50));
+                int option = JOptionPane.showConfirmDialog(DrawingPanel.this, "Are you sure you want to clear all shapes?", "Clear All Shapes", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (option == JOptionPane.OK_OPTION) {
+                    shapes.clear();
+                    DrawingTester.setzeroArea();
+                    repaint();
+                }
+            }
+        });
         mainPopup.add(saveFile);
         mainPopup.add(loadFile);
+        mainPopup.add(clearAllShapes);
+
         //Shape Menu
         JMenuItem deleteItem = new JMenuItem("Delete");
         JMenuItem cloneItem = new JMenuItem("Clone");
@@ -97,7 +119,34 @@ public class DrawingPanel extends JPanel {
         repaint();
     }
     public void addShape(Shape shape) {
+        // Determine placement for row-major order
+        int padding = 10; // Padding between shapes
+        int currentX = padding;
+        int currentY = padding;
+        int maxHeightInRow = 0;
+    
+        for (Shape s : shapes) {
+            // Update currentX to the next position in the row
+            if (currentX + s.width + padding > width) {
+                currentX = padding;
+                currentY += maxHeightInRow + padding;
+                maxHeightInRow = 0;
+            }
+            currentX = s.x + s.width + padding;
+            maxHeightInRow = Math.max(maxHeightInRow, s.height);
+        }
+    
+        // If the new shape exceeds the panel width, move to the next row
+        if (currentX + shape.width > width) {
+            currentX = padding;
+            currentY += maxHeightInRow + padding;
+        }
+    
+        // Set the new shape's position
+        shape.x = currentX;
+        shape.y = currentY;
         shapes.add(shape);
+        repaint();
     }
     private boolean canMove(Shape movingShape, int dx, int dy) {
     Rectangle newBounds = new Rectangle(
@@ -227,6 +276,18 @@ class SaveActionListner implements ActionListener{
         }
     }
 }
+
+// class clearallListener implements ActionListener{
+//     private java.util.List<Shape> shapes;
+//     private DrawingPanel drawingPanel;
+
+//     public clearallListener(java.util.List<Shape> shapes, DrawingPanel drawingPanel){
+//         this.shapes = shapes;
+//         this.drawingPanel = drawingPanel;
+//     }
+//     @Override
+//     public void actionPerformed(ActionEvent e)
+// }
 class LoadActionListener implements  ActionListener{
     private java.util.List<Shape> shapes;
     private DrawingPanel drawingPanel;
@@ -315,21 +376,36 @@ class CloneActionListener implements ActionListener {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        
-        if ((int)drawingPanel.selectedShape.width*2+(int)drawingPanel.selectedShape.x+1< drawingPanel.width){
-        shapes.add(new Shape((int)drawingPanel.selectedShape.width,(int)drawingPanel.selectedShape.height, 
-        (int)drawingPanel.selectedShape.x+(int)drawingPanel.selectedShape.width+1,(int)drawingPanel.selectedShape.y, 
-                            drawingPanel.selectedShape.color, drawingPanel.selectedShape.room_label));
-                        }
-        else{
-        shapes.add(new Shape((int)drawingPanel.selectedShape.width,(int)drawingPanel.selectedShape.height, 
-        (int)drawingPanel.selectedShape.x,(int)drawingPanel.selectedShape.y+drawingPanel.selectedShape.height+1, 
-                            drawingPanel.selectedShape.color, drawingPanel.selectedShape.room_label));
+public void actionPerformed(ActionEvent e) {
+    // Modify CloneActionListener to add cloned shape in row-major order
+    Shape originalShape = drawingPanel.selectedShape;
+    if (originalShape != null) {
+        Shape clonedShape = new Shape(
+            originalShape.width,
+            originalShape.height,
+            0, // Temporary x, will be set by addShape
+            0, // Temporary y, will be set by addShape
+            originalShape.color,
+            originalShape.room_label
+        );
+
+        // Check for overlap before adding the cloned shape
+        boolean overlap = false;
+        for (Shape s : drawingPanel.shapes) {
+            if (s != originalShape && s.contains(new Point(clonedShape.x, clonedShape.y))) {
+                overlap = true;
+                break;
+            }
         }
-        DrawingTester.updateTotalAreaLabel(-drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
-        drawingPanel.repaint();
+
+        if (!overlap) {
+            drawingPanel.addShape(clonedShape);
+            DrawingTester.updateTotalAreaLabel(-originalShape.width * originalShape.height / 100);
+            drawingPanel.repaint();
+        }
     }
+    
+}
     
 }
 
