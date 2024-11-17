@@ -13,11 +13,12 @@ public class DrawingTester {
     private static JPanel sidebarPanel;
     private static JPanel mainPanel;
     private static int currentFloor = 0;
+    private static JFrame f;
 
     public static void main(String[] args) {
         int w = 1920;
         int h = 1080;
-        JFrame f = new JFrame("BubbleGum");
+        f = new JFrame("BubbleGum");
         
         mainPanel = new JPanel(new BorderLayout());
         sidebarPanel = new JPanel();
@@ -40,44 +41,45 @@ public class DrawingTester {
         CircleButton circleButton = new CircleButton("+");
         circleButton.addActionListener(new ActionListener(){
             @Override	
-            public void actionPerformed(ActionEvent e){
+            public void actionPerformed(ActionEvent e) {
                 UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
                 UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
                 UIManager.put("OptionPane.messageForeground", Color.WHITE);
-                UIManager.put("Button.background", new Color(102,102,102));
+                UIManager.put("Button.background", new Color(102, 102, 102));
                 UIManager.put("Button.foreground", Color.WHITE);
-                UIManager.put("OptionPane.background", new Color(75,75,75));
-                UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
-                UIManager.put("Panel.background", new Color(75,75,75));
-                UIManager.put("InternalFrame.background", new Color(75,75,75));
-                String lengthString = JOptionPane.showInputDialog(f,"Enter the length of box:");
-                String breadthString = JOptionPane.showInputDialog(f,"Enter the breadth of box");
+                UIManager.put("OptionPane.background", new Color(75, 75, 75));
+                UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102, 102, 102), 3));
+                UIManager.put("Panel.background", new Color(75, 75, 75));
+                UIManager.put("InternalFrame.background", new Color(75, 75, 75));
+                String lengthString = JOptionPane.showInputDialog(f, "Enter the length of box:");
+                String breadthString = JOptionPane.showInputDialog(f, "Enter the breadth of box");
                 String roomLabel = JOptionPane.showInputDialog(f, "Enter the room label:");
-                if(lengthString!=null && breadthString!=null){
-                    try{
+                if (lengthString != null && breadthString != null) {
+                    try {
                         int length = Integer.parseInt(lengthString);
                         int breadth = Integer.parseInt(breadthString);
-                        if(length>0 && breadth>0){
-                            UIManager.put("Button.border", BorderFactory.createLineBorder(Color.BLACK,1));
+                        if (length > 0 && breadth > 0) {
+                            UIManager.put("Button.border", BorderFactory.createLineBorder(Color.BLACK, 1));
                             UIManager.put("Button.foreground", Color.black);
                             UIManager.put("Button.background", Color.white);
-                                UIManager.put("Panel.background", Color.white);
-                                UIManager.put("OptionPane.background", Color.white);
-                                Color color = JColorChooser.showDialog(f, "Choose a color for the shape", Color.BLACK);
-                                 if (color != null) {
-                                panel.addShape(new Shape(length, breadth, w/2, h/3,color,roomLabel));
+                            UIManager.put("Panel.background", Color.white);
+                            UIManager.put("OptionPane.background", Color.white);
+                            Color color = JColorChooser.showDialog(f, "Choose a color for the shape", Color.BLACK);
+                            if (color != null) {
+                                panel.addShape(new Shape(length, breadth, w / 2, h / 3, color, roomLabel));
                                 panel.addedShape();
                                 updateTotalArea(length, breadth);
-                                 }
-                            }else{
-                                 JOptionPane.showMessageDialog(f, "Enter positive values for length and breadth.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
                             }
-                        }catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(f, "Please enter valid numeric values.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(f, "Enter positive values for length and breadth.",
+                                    "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(f, "Please enter valid numeric values.", "Invalid Input",
+                                JOptionPane.ERROR_MESSAGE);
                     }
-                    }
-                    
-				}
+                }
+            }
         });
 
         panel.setLayout(null);
@@ -117,8 +119,57 @@ public class DrawingTester {
         int floorNumber = floors.size() + 1;
         DrawingPanel newPanel = new DrawingPanel(1770, 1080);
         newPanel.setBackground(new Color(75, 75, 75));
+
+        CircleButton circleButton = new CircleButton("+");
+        circleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+                UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+                UIManager.put("OptionPane.messageForeground", Color.WHITE);
+                UIManager.put("Button.background", new Color(102, 102, 102));
+                UIManager.put("Button.foreground", Color.WHITE);
+                UIManager.put("OptionPane.background", new Color(75, 75, 75));
+                UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102, 102, 102), 3));
+                UIManager.put("Panel.background", new Color(75, 75, 75));
+                UIManager.put("InternalFrame.background", new Color(75, 75, 75));
+                String lengthString = JOptionPane.showInputDialog(f, "Enter the length of box:");
+                String breadthString = JOptionPane.showInputDialog(f, "Enter the breadth of box");
+                String roomLabel = JOptionPane.showInputDialog(f, "Enter the room label:");
+                if (lengthString != null && breadthString != null) {
+                    try {
+                        int length = Integer.parseInt(lengthString);
+                        int breadth = Integer.parseInt(breadthString);
+                        if (length > 0 && breadth > 0) {
+                            UIManager.put("Button.border", BorderFactory.createLineBorder(Color.BLACK, 1));
+                            UIManager.put("Button.foreground", Color.black);
+                            UIManager.put("Button.background", Color.white);
+                            UIManager.put("Panel.background", Color.white);
+                            UIManager.put("OptionPane.background", Color.white);
+                            Color color = JColorChooser.showDialog(f, "Choose a color for the shape", Color.BLACK);
+                            if (color != null) {
+                                newPanel.addShape(new Shape(length, breadth, 1770 / 2, 1080 / 3, color, roomLabel));
+                                newPanel.addedShape();
+                                updateTotalArea(length, breadth);
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(f, "Enter positive values for length and breadth.",
+                                    "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(f, "Please enter valid numeric values.", "Invalid Input",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        newPanel.setLayout(null);
+        circleButton.setBounds(1700, 525, 50, 50);
+        newPanel.add(circleButton);
+
         floors.add(newPanel);
-        
+
         addFloorButton("Floor " + floorNumber, floorNumber - 1);
         switchToFloor(floorNumber - 1);
     }
