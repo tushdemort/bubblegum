@@ -131,7 +131,7 @@ public class DrawingPanel extends JPanel {
     }
     private void addRoomRelativeToSelected(String direction) {
         if (selectedShape == null) {
-            JOptionPane.showMessageDialog(this, "No room selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "No room selected.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
@@ -176,7 +176,7 @@ public class DrawingPanel extends JPanel {
             if (newX > width || newX<0) {
                 System.out.println(width);
                 System.out.println(newX);
-                JOptionPane.showMessageDialog(this, "The new room is going out of bounds", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "The new room is going out of bounds", "Error", JOptionPane.ERROR_MESSAGE);
             }
             else{
                 shapes.add(newRoom);
@@ -185,7 +185,7 @@ public class DrawingPanel extends JPanel {
             
         } else {
             
-            JOptionPane.showMessageDialog(this, "The new room overlaps with an existing room.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "The new room overlaps with an existing room.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     private boolean isOverlapping(Shape newShape) {
@@ -336,10 +336,10 @@ class SaveActionListner implements ActionListener{
             boolean extension = filename.endsWith(".rmap");
             if (extension){
                 RMapFile.writeRMap(filename, data);
-                JOptionPane.showMessageDialog(drawingPanel, "File saved successfully", "Success", JOptionPane.INFORMATION_MESSAGE);  
+                JOptionPane.showMessageDialog(null, "File saved successfully", "Success", JOptionPane.INFORMATION_MESSAGE);  
             }
             else{
-                JOptionPane.showMessageDialog(drawingPanel, "Invalid file extension", "Error", JOptionPane.ERROR_MESSAGE);  
+                JOptionPane.showMessageDialog(null, "Invalid file extension", "Error", JOptionPane.ERROR_MESSAGE);  
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -397,11 +397,11 @@ class LoadActionListener implements  ActionListener{
             }
         }
         else{
-            JOptionPane.showMessageDialog(drawingPanel, "Invalid file extension", "Error", JOptionPane.ERROR_MESSAGE);  
+            JOptionPane.showMessageDialog(null, "Invalid file extension", "Error", JOptionPane.ERROR_MESSAGE);  
         }
         drawingPanel.repaint();
         } catch (IOException ex){
-            JOptionPane.showMessageDialog(drawingPanel, "File not found", "Error", JOptionPane.ERROR_MESSAGE);  
+            JOptionPane.showMessageDialog(null, "File not found", "Error", JOptionPane.ERROR_MESSAGE);  
             ex.printStackTrace();
         }
 
@@ -427,7 +427,7 @@ class DeleteActionListener implements ActionListener {
         UIManager.put("OptionPane.background", new Color(50,50,50));
         UIManager.put("Panel.background", new Color(50,50,50));
         UIManager.put("InternalFrame.background", new Color(50,50,50));
-        int option = JOptionPane.showConfirmDialog(drawingPanel, "Are you sure you want to delete this shape?", "Delete Shape", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this shape?", "Delete Shape", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
         if (option == JOptionPane.OK_OPTION) {
             shapes.remove(drawingPanel.selectedShape);
             DrawingTester.updateTotalAreaLabel(drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
@@ -515,7 +515,7 @@ class ResizeActionListener implements ActionListener{
         drawingPanel.repaint();
         }
         else{
-            JOptionPane.showMessageDialog(drawingPanel, "Enter valid values for length and breadth.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Enter valid values for length and breadth.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
@@ -545,7 +545,7 @@ class EditLabelActionListener implements ActionListener{
             drawingPanel.repaint();
         }
         else{
-            JOptionPane.showMessageDialog(drawingPanel, "No label entered.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "No label entered.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
