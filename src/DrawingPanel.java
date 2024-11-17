@@ -54,22 +54,40 @@ public class DrawingPanel extends JPanel {
         mainPopup.add(loadFile);
         mainPopup.add(clearAllShapes);
 
-        //Shape Menu
+        // Shape Menu
         JMenuItem deleteItem = new JMenuItem("Delete");
         JMenuItem cloneItem = new JMenuItem("Clone");
         JMenuItem resizeItem = new JMenuItem("Resize");
         JMenuItem editLabel = new JMenuItem("Edit Label");
         JMenuItem editColor = new JMenuItem("Edit Color");
+        JMenu addRoomMenu = new JMenu("Add Room");
+        JMenuItem addRoomNorth = new JMenuItem("North");
+        JMenuItem addRoomSouth = new JMenuItem("South");
+        JMenuItem addRoomEast = new JMenuItem("East");
+        JMenuItem addRoomWest = new JMenuItem("West");
+
         deleteItem.addActionListener(new DeleteActionListener(shapes, this));
         cloneItem.addActionListener(new CloneActionListener(shapes, this));
         resizeItem.addActionListener(new ResizeActionListener(this));
         editLabel.addActionListener(new EditLabelActionListener(this));
         editColor.addActionListener(new EditColorActionListener(this));
+
+        addRoomNorth.addActionListener(e -> addRoomRelativeToSelected("North"));
+        addRoomSouth.addActionListener(e -> addRoomRelativeToSelected("South"));
+        addRoomEast.addActionListener(e -> addRoomRelativeToSelected("East"));
+        addRoomWest.addActionListener(e -> addRoomRelativeToSelected("West"));
+
+        addRoomMenu.add(addRoomNorth);
+        addRoomMenu.add(addRoomSouth);
+        addRoomMenu.add(addRoomEast);
+        addRoomMenu.add(addRoomWest);
+
         popupMenu.add(cloneItem);
         popupMenu.add(deleteItem);
         popupMenu.add(resizeItem);
         popupMenu.add(editLabel);
         popupMenu.add(editColor);
+        popupMenu.add(addRoomMenu);
         MouseAdapter ma = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -77,18 +95,15 @@ public class DrawingPanel extends JPanel {
                     if (s.contains(e.getPoint())) {
                         draggedShape = s;
                         previousPoint = e.getPoint();
-                        if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1){
+                        if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1) {
                             selectedShape = s;
                             popupMenu.show(DrawingPanel.this, e.getX(), e.getY());
                         }
                         break;
+                    } else if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1) {
+                        mainPopup.show(DrawingPanel.this, e.getX(), e.getY());
                     }
-                    else if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1){
-                        mainPopup.show(DrawingPanel.this,e.getX(),e.getY());
-                    }   
-
                 }
-
             }
 
             @Override
@@ -100,9 +115,9 @@ public class DrawingPanel extends JPanel {
             public void mouseDragged(MouseEvent e) {
                 if (draggedShape != null) {
                     Point currentPoint = e.getPoint();
-                    int dx = (int)(currentPoint.getX() - previousPoint.getX());
-                    int dy = (int)(currentPoint.getY() - previousPoint.getY());
-                    
+                    int dx = (int) (currentPoint.getX() - previousPoint.getX());
+                    int dy = (int) (currentPoint.getY() - previousPoint.getY());
+
                     if (canMove(draggedShape, dx, dy)) {
                         draggedShape.translate(dx, dy);
                         previousPoint = currentPoint;
@@ -114,6 +129,76 @@ public class DrawingPanel extends JPanel {
         addMouseListener(ma);
         addMouseMotionListener(ma);
     }
+    private void addRoomRelativeToSelected(String direction) {
+        if (selectedShape == null) {
+            JOptionPane.showMessageDialog(this, "No room selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        UIManager.put("OptionPane.messageFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.buttonFont", new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
+        UIManager.put("OptionPane.messageForeground", Color.WHITE);
+        UIManager.put("Button.background", new Color(102,102,102));
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Button.border", BorderFactory.createLineBorder(new Color(102,102,102), 3));
+        UIManager.put("OptionPane.background", new Color(50,50,50));
+        UIManager.put("Panel.background", new Color(50,50,50));
+        UIManager.put("InternalFrame.background", new Color(50,50,50));
+        int padding = 5;
+        int newX = selectedShape.x;
+        int newY = selectedShape.y;
+
+        switch (direction) {
+            case "North":
+                newY = selectedShape.y - selectedShape.height - padding;
+                break;
+            case "South":
+                newY = selectedShape.y + selectedShape.height + padding;
+                break;
+            case "East":
+                newX = selectedShape.x + selectedShape.width + padding;
+                break;
+            case "West":
+                newX = selectedShape.x - selectedShape.width - padding;
+                break;
+        }
+        Shape newRoom = new Shape(selectedShape.width, selectedShape.height, newX, newY, selectedShape.color, "New Room");
+        String lengthString = JOptionPane.showInputDialog(this,"Enter the length of box:","LENGTH",JOptionPane.QUESTION_MESSAGE);
+        String breadthString = JOptionPane.showInputDialog(this,"Enter the width of box","WIDTH",JOptionPane.QUESTION_MESSAGE);
+        String newLabel = JOptionPane.showInputDialog(this,"Enter the new label:");
+        if(lengthString != null && breadthString != null && newLabel != null){
+            Color color = JColorChooser.showDialog(this, "Choose a color for the shape", Color.BLACK);
+            int length = Integer.parseInt(lengthString);
+            int breadth = Integer.parseInt(breadthString);
+
+            newRoom = new Shape(breadth, length, newX, newY, color, newLabel);
+        }
+        if (!isOverlapping(newRoom)) {
+            if (newX > width || newX<0) {
+                System.out.println(width);
+                System.out.println(newX);
+                JOptionPane.showMessageDialog(this, "The new room is going out of bounds", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            else{
+                shapes.add(newRoom);
+                repaint();
+            }
+            
+        } else {
+            
+            JOptionPane.showMessageDialog(this, "The new room overlaps with an existing room.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    private boolean isOverlapping(Shape newShape) {
+        Rectangle newBounds = new Rectangle(newShape.x, newShape.y, newShape.width, newShape.height);
+        for (Shape existingShape : shapes) {
+            Rectangle existingBounds = new Rectangle(existingShape.x, existingShape.y, existingShape.width, existingShape.height);
+            if (newBounds.intersects(existingBounds)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     
     public void addedShape(){
         repaint();
@@ -124,7 +209,7 @@ public class DrawingPanel extends JPanel {
         int currentX = padding;
         int currentY = padding;
         int maxHeightInRow = 0;
-    
+        
         for (Shape s : shapes) {
             // Update currentX to the next position in the row
             if (currentX + s.width + padding > width) {
@@ -148,47 +233,33 @@ public class DrawingPanel extends JPanel {
         shapes.add(shape);
         repaint();
     }
+    // private boolean canMove(Shape movingShape, int dx, int dy) {
+    //     Rectangle newBounds = new Rectangle(movingShape.x + dx, movingShape.y + dy, movingShape.width, movingShape.height);
+
+    //     for (Shape otherShape : shapes) {
+    //         if (otherShape != movingShape) {
+    //             Rectangle otherBounds = new Rectangle(otherShape.x, otherShape.y, otherShape.width, otherShape.height);
+    //             if (newBounds.intersects(otherBounds)) {
+    //                 return false;
+    //             }
+    //         }
+    //     }
+    //     return true;
+    // }
     private boolean canMove(Shape movingShape, int dx, int dy) {
-    Rectangle newBounds = new Rectangle(
-        movingShape.x + dx,
-        movingShape.y + dy,
-        movingShape.width,
-        movingShape.height
-    );
+    Rectangle newBounds = new Rectangle(movingShape.x + dx, movingShape.y + dy, movingShape.width, movingShape.height);
 
     for (Shape otherShape : shapes) {
         if (otherShape != movingShape) {
-            Rectangle otherBounds = new Rectangle(
-                otherShape.x,
-                otherShape.y,
-                otherShape.width,
-                otherShape.height
-            );
+            Rectangle otherBounds = new Rectangle(otherShape.x, otherShape.y, otherShape.width, otherShape.height);
             if (newBounds.intersects(otherBounds)) {
-
-                int overlapX = Math.min(newBounds.x + newBounds.width, otherBounds.x + otherBounds.width) - 
-                               Math.max(newBounds.x, otherBounds.x);
-                int overlapY = Math.min(newBounds.y + newBounds.height, otherBounds.y + otherBounds.height) - 
-                               Math.max(newBounds.y, otherBounds.y);
-
-                if (overlapX < overlapY) {
-                    if (dx > 0) { 
-                        movingShape.translate(-overlapX, 0); 
-                    } else if (dx < 0) { 
-                        movingShape.translate(overlapX, 0); 
-                    }
-                } else {
-                    if (dy > 0) { 
-                        movingShape.translate(0, -overlapY); 
-                    } else if (dy < 0) {
-                        movingShape.translate(0, overlapY); 
-                    }
-                }
-                return false; 
+                return false;
             }
         }
     }
-    return true; 
+    return true;
+    }
+    // return true; 
     /*private boolean canMove(Shape movingShape, int dx, int dy) {
         Rectangle newBounds = new Rectangle(
             movingShape.x + dx,
@@ -212,7 +283,7 @@ public class DrawingPanel extends JPanel {
         }
         return true;
     }*/
-}
+// }
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -438,8 +509,8 @@ class ResizeActionListener implements ActionListener{
         int length = Integer.parseInt(lengthString);
         int breadth = Integer.parseInt(breadthString);
         DrawingTester.updateTotalAreaLabel(drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
-        drawingPanel.selectedShape.width = breadth;
-        drawingPanel.selectedShape.height = length;
+        drawingPanel.selectedShape.width = length;
+        drawingPanel.selectedShape.height = breadth;
         DrawingTester.updateTotalAreaLabel(-drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
         drawingPanel.repaint();
         }
