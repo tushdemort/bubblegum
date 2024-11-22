@@ -12,6 +12,7 @@ import javax.swing.*;
 
 public class DrawingPanel extends JPanel {
     public java.util.List<Shape> shapes = new java.util.ArrayList<>();
+    public java.util.List<ImageShape> fixtures = new java.util.ArrayList<>();
     private Shape draggedShape = null;
     private Point previousPoint;
     public Shape selectedShape = null;
@@ -60,6 +61,8 @@ public class DrawingPanel extends JPanel {
         JMenuItem resizeItem = new JMenuItem("Resize");
         JMenuItem editLabel = new JMenuItem("Edit Label");
         JMenuItem editColor = new JMenuItem("Edit Color");
+        JMenuItem addFixture = new JMenuItem("Add fixture");
+
         JMenu addRoomMenu = new JMenu("Add Room");
         JMenuItem addRoomNorth = new JMenuItem("North");
         JMenuItem addRoomSouth = new JMenuItem("South");
@@ -71,7 +74,7 @@ public class DrawingPanel extends JPanel {
         resizeItem.addActionListener(new ResizeActionListener(this));
         editLabel.addActionListener(new EditLabelActionListener(this));
         editColor.addActionListener(new EditColorActionListener(this));
-
+        addFixture.addActionListener(new FixtureAddActionListner(fixtures,this));
         addRoomNorth.addActionListener(e -> addRoomRelativeToSelected("North"));
         addRoomSouth.addActionListener(e -> addRoomRelativeToSelected("South"));
         addRoomEast.addActionListener(e -> addRoomRelativeToSelected("East"));
@@ -81,7 +84,9 @@ public class DrawingPanel extends JPanel {
         addRoomMenu.add(addRoomSouth);
         addRoomMenu.add(addRoomEast);
         addRoomMenu.add(addRoomWest);
-
+        
+        
+        popupMenu.add(addFixture);
         popupMenu.add(cloneItem);
         popupMenu.add(deleteItem);
         popupMenu.add(resizeItem);
@@ -291,10 +296,13 @@ public class DrawingPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
         for (Shape s : shapes) {
             s.draw(g2d);
-
-
         }
+    }
 
+    public void addImageShape(ImageShape imageShape) {
+        fixtures.add(imageShape);
+        this.add(imageShape.getImageLabel());
+        repaint();
     }
 }
 
@@ -500,6 +508,32 @@ public void actionPerformed(ActionEvent e) {
     
 }
 
+
+class FixtureAddActionListner implements ActionListener {
+    private java.util.List<ImageShape> fixtures;
+    private DrawingPanel drawingPanel;
+
+    public FixtureAddActionListner(java.util.List<ImageShape> fixtures, DrawingPanel drawingPanel) {
+        this.fixtures = fixtures;
+        this.drawingPanel = drawingPanel;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // Provide the correct path to the image
+        // String imagePath = "src/resources/sofa.png";
+        String imagePath = "src/sofa.png";
+        ImageShape imageShape = new ImageShape(200, 200, 2, 1, imagePath);
+
+        if (imageShape.getImage() == null) {
+            System.out.println("Image not found: " + imagePath);
+        } else {
+            System.out.println("Image loaded successfully: " + imagePath);
+            drawingPanel.addImageShape(imageShape);
+        }
+    }
+}
+
 class ResizeActionListener implements ActionListener{
     private DrawingPanel drawingPanel;
 
@@ -619,5 +653,34 @@ class Shape {
     public void translate(int dx, int dy) {
         x += dx;
         y += dy;
+    }
+}
+class ImageShape {
+    private int x, y;
+    private int width, height;
+    private JLabel imageLabel;
+
+    public ImageShape(int x, int y, int width, int height, String imagePath) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+
+        ImageIcon imageIcon = new ImageIcon(imagePath);
+        if (imageIcon.getImage() == null) {
+            System.out.println("Image not found: " + imagePath);
+        }
+
+        // Create a JLabel with the image
+        imageLabel = new JLabel(imageIcon);
+        imageLabel.setBounds(x, y, width, height);
+    }
+
+    public JLabel getImageLabel() {
+        return imageLabel;
+    }
+
+    public Image getImage() {
+        return new ImageIcon(imageLabel.getIcon().toString()).getImage();
     }
 }
