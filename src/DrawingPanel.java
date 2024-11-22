@@ -21,6 +21,8 @@ public class DrawingPanel extends JPanel {
         this.width = width;
         this.height = height;
         setPreferredSize(new Dimension(width, height));
+            setLayout(null);
+
         JPopupMenu popupMenu = new JPopupMenu();
         JPopupMenu mainPopup = new JPopupMenu();
         
@@ -61,7 +63,16 @@ public class DrawingPanel extends JPanel {
         JMenuItem resizeItem = new JMenuItem("Resize");
         JMenuItem editLabel = new JMenuItem("Edit Label");
         JMenuItem editColor = new JMenuItem("Edit Color");
-        JMenuItem addFixture = new JMenuItem("Add fixture");
+        JMenu addFixture = new JMenu("Add fixture");
+        JMenuItem bed = new JMenuItem("North");
+        JMenuItem table = new JMenuItem("South");
+        JMenuItem sofa = new JMenuItem("East");
+        JMenuItem dining = new JMenuItem("West");
+        JMenuItem commode = new JMenuItem("West");
+        JMenuItem basin = new JMenuItem("West");
+        JMenuItem shower = new JMenuItem("West");
+        JMenuItem ksink = new JMenuItem("West");
+        JMenuItem stove = new JMenuItem("West");
 
         JMenu addRoomMenu = new JMenu("Add Room");
         JMenuItem addRoomNorth = new JMenuItem("North");
@@ -96,33 +107,51 @@ public class DrawingPanel extends JPanel {
         MouseAdapter ma = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                for (Shape s : shapes) {
-                    if (s.contains(e.getPoint())) {
-                        draggedShape = s;
-                        previousPoint = e.getPoint();
-                        if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1) {
+                boolean shapeSelected = false;
+        
+                // Handle right-click for showing context menus
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    for (Shape s : shapes) {
+                        if (s.contains(e.getPoint())) {
                             selectedShape = s;
                             popupMenu.show(DrawingPanel.this, e.getX(), e.getY());
+                            shapeSelected = true;
+                            break;
                         }
-                        break;
-                    } else if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0 && e.getClickCount() == 1) {
+                    }
+                    if (!shapeSelected) {
                         mainPopup.show(DrawingPanel.this, e.getX(), e.getY());
+                    }
+                } else if (SwingUtilities.isLeftMouseButton(e)) {
+                    // Handle left-click for selecting and dragging shapes
+                    for (Shape s : shapes) {
+                        if (s.contains(e.getPoint())) {
+                            draggedShape = s;
+                            previousPoint = e.getPoint();
+                            shapeSelected = true;
+                            break;
+                        }
+                    }
+                    // If no shape is selected, clear the selectedShape to avoid unwanted movement
+                    if (!shapeSelected) {
+                        selectedShape = null;
+                        draggedShape = null;
                     }
                 }
             }
-
+        
             @Override
             public void mouseReleased(MouseEvent e) {
                 draggedShape = null;
             }
-
+        
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (draggedShape != null) {
+                if (draggedShape != null && SwingUtilities.isLeftMouseButton(e)) {
                     Point currentPoint = e.getPoint();
                     int dx = (int) (currentPoint.getX() - previousPoint.getX());
                     int dy = (int) (currentPoint.getY() - previousPoint.getY());
-
+        
                     if (canMove(draggedShape, dx, dy)) {
                         draggedShape.translate(dx, dy);
                         previousPoint = currentPoint;
@@ -238,19 +267,7 @@ public class DrawingPanel extends JPanel {
         shapes.add(shape);
         repaint();
     }
-    // private boolean canMove(Shape movingShape, int dx, int dy) {
-    //     Rectangle newBounds = new Rectangle(movingShape.x + dx, movingShape.y + dy, movingShape.width, movingShape.height);
 
-    //     for (Shape otherShape : shapes) {
-    //         if (otherShape != movingShape) {
-    //             Rectangle otherBounds = new Rectangle(otherShape.x, otherShape.y, otherShape.width, otherShape.height);
-    //             if (newBounds.intersects(otherBounds)) {
-    //                 return false;
-    //             }
-    //         }
-    //     }
-    //     return true;
-    // }
     private boolean canMove(Shape movingShape, int dx, int dy) {
     Rectangle newBounds = new Rectangle(movingShape.x + dx, movingShape.y + dy, movingShape.width, movingShape.height);
 
@@ -290,18 +307,24 @@ public class DrawingPanel extends JPanel {
     }*/
 // }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D) g;
-        for (Shape s : shapes) {
-            s.draw(g2d);
-        }
+@Override
+protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
+    Graphics2D g2d = (Graphics2D) g;
+
+    // Draw all shapes
+    for (Shape s : shapes) {
+        s.draw(g2d);
     }
 
+    // Fixtures are managed by Swing components (JLabel) and do not need to be redrawn here
+}
+
     public void addImageShape(ImageShape imageShape) {
-        fixtures.add(imageShape);
-        this.add(imageShape.getImageLabel());
+        if (!fixtures.contains(imageShape)) {
+            fixtures.add(imageShape);
+            this.add(imageShape.getImageLabel());
+        }
         repaint();
     }
 }
@@ -522,8 +545,10 @@ class FixtureAddActionListner implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         // Provide the correct path to the image
         // String imagePath = "src/resources/sofa.png";
+        Shape originalShape = drawingPanel.selectedShape;
         String imagePath = "src/sofa.png";
-        ImageShape imageShape = new ImageShape(200, 200, 2, 1, imagePath);
+        System.out.println(originalShape.x);
+        ImageShape imageShape = new ImageShape(originalShape.x-1, originalShape.y+1, 40, 20, imagePath);
 
         if (imageShape.getImage() == null) {
             System.out.println("Image not found: " + imagePath);
@@ -667,40 +692,57 @@ class ImageShape {
         this.width = width;
         this.height = height;
 
-        ImageIcon imageIcon = new ImageIcon(imagePath);
-        if (imageIcon.getImage() == null) {
-            System.out.println("Image not found: " + imagePath);
-        }
+        // Load and resize the image to match the specified width and height
+        ImageIcon originalIcon = new ImageIcon(imagePath);
+        Image scaledImage = originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
 
-        // Create a JLabel with the image
-        imageLabel = new JLabel(imageIcon);
+        // Create a JLabel with the resized image
+        imageLabel = new JLabel(scaledIcon);
         imageLabel.setBounds(x, y, width, height);
+
+        // Add mouse listeners for dragging the image
         imageLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                initialClick = e.getPoint();
-                imageLabel.getParent().repaint();
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    initialClick = e.getPoint();
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    // Show a context menu instead of changing position
+                    JPopupMenu popupMenu = new JPopupMenu();
+                    JMenuItem deleteItem = new JMenuItem("Delete");
+                    deleteItem.addActionListener(event -> {
+                        Container parent = imageLabel.getParent();
+                        parent.remove(imageLabel);
+                        parent.repaint();
+                    });
+                    popupMenu.add(deleteItem);
+                    popupMenu.show(imageLabel, e.getX(), e.getY());
+                    e.consume(); // Prevent unintended side effects
+                }
             }
         });
-
+        
         imageLabel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                // Get the current location of the label
-                int thisX = imageLabel.getX();
-                int thisY = imageLabel.getY();
-
-                // Determine how much the mouse moved since the initial click
-                int xMoved = e.getX() - initialClick.x;
-                int yMoved = e.getY() - initialClick.y;
-
-                // Move the label to the new location
-                int nextX = thisX + xMoved;
-                int nextY = thisY + yMoved;
-
-                // Set the label to the new position
-                imageLabel.setLocation(nextX, nextY);
-                imageLabel.getParent().repaint();
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    // Get the current location of the label
+                    int thisX = imageLabel.getX();
+                    int thisY = imageLabel.getY();
+        
+                    // Determine how much the mouse moved since the initial click
+                    int xMoved = e.getX() - initialClick.x;
+                    int yMoved = e.getY() - initialClick.y;
+        
+                    // Move the label to the new location
+                    int nextX = thisX + xMoved;
+                    int nextY = thisY + yMoved;
+        
+                    // Set the label to the new position
+                    imageLabel.setLocation(nextX, nextY);
+                    imageLabel.getParent().repaint();
+                }
             }
         });
     }
