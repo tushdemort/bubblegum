@@ -659,6 +659,7 @@ class ImageShape {
     private int x, y;
     private int width, height;
     private JLabel imageLabel;
+    private Point initialClick;
 
     public ImageShape(int x, int y, int width, int height, String imagePath) {
         this.x = x;
@@ -674,6 +675,34 @@ class ImageShape {
         // Create a JLabel with the image
         imageLabel = new JLabel(imageIcon);
         imageLabel.setBounds(x, y, width, height);
+        imageLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                initialClick = e.getPoint();
+                imageLabel.getParent().repaint();
+            }
+        });
+
+        imageLabel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // Get the current location of the label
+                int thisX = imageLabel.getX();
+                int thisY = imageLabel.getY();
+
+                // Determine how much the mouse moved since the initial click
+                int xMoved = e.getX() - initialClick.x;
+                int yMoved = e.getY() - initialClick.y;
+
+                // Move the label to the new location
+                int nextX = thisX + xMoved;
+                int nextY = thisY + yMoved;
+
+                // Set the label to the new position
+                imageLabel.setLocation(nextX, nextY);
+                imageLabel.getParent().repaint();
+            }
+        });
     }
 
     public JLabel getImageLabel() {
