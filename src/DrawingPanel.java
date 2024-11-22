@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.*;
 import java.util.ArrayList;
@@ -8,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
-
 
 public class DrawingPanel extends JPanel {
     public java.util.List<Shape> shapes = new java.util.ArrayList<>();
@@ -63,16 +63,36 @@ public class DrawingPanel extends JPanel {
         JMenuItem resizeItem = new JMenuItem("Resize");
         JMenuItem editLabel = new JMenuItem("Edit Label");
         JMenuItem editColor = new JMenuItem("Edit Color");
+        
         JMenu addFixture = new JMenu("Add fixture");
-        JMenuItem bed = new JMenuItem("North");
-        JMenuItem table = new JMenuItem("South");
-        JMenuItem sofa = new JMenuItem("East");
-        JMenuItem dining = new JMenuItem("West");
-        JMenuItem commode = new JMenuItem("West");
-        JMenuItem basin = new JMenuItem("West");
-        JMenuItem shower = new JMenuItem("West");
-        JMenuItem ksink = new JMenuItem("West");
-        JMenuItem stove = new JMenuItem("West");
+        JMenuItem bed = new JMenuItem("Bed");
+        JMenuItem table = new JMenuItem("Table");
+        JMenuItem sofa = new JMenuItem("Sofa");
+        JMenuItem dining = new JMenuItem("Dining Set");
+        JMenuItem commode = new JMenuItem("Commode");
+        JMenuItem basin = new JMenuItem("Basin");
+        JMenuItem shower = new JMenuItem("Bathtub");
+        JMenuItem ksink = new JMenuItem("Kitchen Sink");
+        JMenuItem stove = new JMenuItem("Stove");
+        bed.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/bed.png",30,20));
+        table.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/table.png",30,20));
+        sofa.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/sofa.png",30,20));
+        dining.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/dining.png",30,20));
+        commode.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/commode.png",30,20));
+        basin.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/basin.png",30,20));
+        shower.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/bathtub.png",30,20));
+        ksink.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/kink.png",60,60));
+        stove.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/stove.png",30,20));
+        addFixture.add(bed);
+        addFixture.add(table);
+        addFixture.add(sofa);
+        addFixture.add(dining);
+        addFixture.add(commode);
+        addFixture.add(basin);
+        addFixture.add(shower);
+        addFixture.add(ksink);
+        addFixture.add(stove);
+
 
         JMenu addRoomMenu = new JMenu("Add Room");
         JMenuItem addRoomNorth = new JMenuItem("North");
@@ -85,7 +105,7 @@ public class DrawingPanel extends JPanel {
         resizeItem.addActionListener(new ResizeActionListener(this));
         editLabel.addActionListener(new EditLabelActionListener(this));
         editColor.addActionListener(new EditColorActionListener(this));
-        addFixture.addActionListener(new FixtureAddActionListner(fixtures,this));
+        
         addRoomNorth.addActionListener(e -> addRoomRelativeToSelected("North"));
         addRoomSouth.addActionListener(e -> addRoomRelativeToSelected("South"));
         addRoomEast.addActionListener(e -> addRoomRelativeToSelected("East"));
@@ -535,10 +555,15 @@ public void actionPerformed(ActionEvent e) {
 class FixtureAddActionListner implements ActionListener {
     private java.util.List<ImageShape> fixtures;
     private DrawingPanel drawingPanel;
-
-    public FixtureAddActionListner(java.util.List<ImageShape> fixtures, DrawingPanel drawingPanel) {
+    private String path;
+    int w;
+    int h;
+    public FixtureAddActionListner(java.util.List<ImageShape> fixtures, DrawingPanel drawingPanel, String path,int w,int h) {
         this.fixtures = fixtures;
         this.drawingPanel = drawingPanel;
+        this.path = path;
+        this.w =w;
+        this.h =h;
     }
 
     @Override
@@ -546,14 +571,12 @@ class FixtureAddActionListner implements ActionListener {
         // Provide the correct path to the image
         // String imagePath = "src/resources/sofa.png";
         Shape originalShape = drawingPanel.selectedShape;
-        String imagePath = "src/sofa.png";
-        System.out.println(originalShape.x);
-        ImageShape imageShape = new ImageShape(originalShape.x-1, originalShape.y+1, 40, 20, imagePath);
+        ImageShape imageShape = new ImageShape(originalShape.x-1, originalShape.y+1, w, h, path);
 
         if (imageShape.getImage() == null) {
-            System.out.println("Image not found: " + imagePath);
+            System.out.println("Image not found: " + path);
         } else {
-            System.out.println("Image loaded successfully: " + imagePath);
+            System.out.println("Image loaded successfully: " + path);
             drawingPanel.addImageShape(imageShape);
         }
     }
@@ -685,6 +708,7 @@ class ImageShape {
     private int width, height;
     private JLabel imageLabel;
     private Point initialClick;
+    private Image originalImage;
 
     public ImageShape(int x, int y, int width, int height, String imagePath) {
         this.x = x;
@@ -694,14 +718,15 @@ class ImageShape {
 
         // Load and resize the image to match the specified width and height
         ImageIcon originalIcon = new ImageIcon(imagePath);
-        Image scaledImage = originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        originalImage = originalIcon.getImage(); // Set the original image
+        Image scaledImage = originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
 
         // Create a JLabel with the resized image
         imageLabel = new JLabel(scaledIcon);
         imageLabel.setBounds(x, y, width, height);
 
-        // Add mouse listeners for dragging the image
+        // Add mouse listeners for dragging and rotating the image
         imageLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -711,18 +736,27 @@ class ImageShape {
                     // Show a context menu instead of changing position
                     JPopupMenu popupMenu = new JPopupMenu();
                     JMenuItem deleteItem = new JMenuItem("Delete");
+                    JMenuItem rotateLeftItem = new JMenuItem("Rotate Left");
+                    JMenuItem rotateRightItem = new JMenuItem("Rotate Right");
+
                     deleteItem.addActionListener(event -> {
                         Container parent = imageLabel.getParent();
                         parent.remove(imageLabel);
                         parent.repaint();
                     });
+
+                    rotateLeftItem.addActionListener(event -> rotateImage(-90));
+                    rotateRightItem.addActionListener(event -> rotateImage(90));
+
                     popupMenu.add(deleteItem);
+                    popupMenu.add(rotateLeftItem);
+                    popupMenu.add(rotateRightItem);
                     popupMenu.show(imageLabel, e.getX(), e.getY());
                     e.consume(); // Prevent unintended side effects
                 }
             }
         });
-        
+
         imageLabel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
@@ -730,21 +764,62 @@ class ImageShape {
                     // Get the current location of the label
                     int thisX = imageLabel.getX();
                     int thisY = imageLabel.getY();
-        
+
                     // Determine how much the mouse moved since the initial click
                     int xMoved = e.getX() - initialClick.x;
                     int yMoved = e.getY() - initialClick.y;
-        
+
                     // Move the label to the new location
                     int nextX = thisX + xMoved;
                     int nextY = thisY + yMoved;
-        
+
                     // Set the label to the new position
                     imageLabel.setLocation(nextX, nextY);
                     imageLabel.getParent().repaint();
                 }
             }
         });
+    }
+
+    private void rotateImage(int angle) {
+        // Calculate the size of the rotated image to ensure full visibility
+        double radians = Math.toRadians(Math.abs(angle));
+        double sin = Math.abs(Math.sin(radians));
+        double cos = Math.abs(Math.cos(radians));
+        int newWidth = (int) (width * cos + height * sin);
+        int newHeight = (int) (width * sin + height * cos);
+    
+        // Create a rotated version of the original image
+        BufferedImage rotatedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = rotatedImage.createGraphics();
+        
+        // Set rendering hints for smoother rotation
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    
+        // Center the rotation
+        AffineTransform transform = new AffineTransform();
+        transform.translate(newWidth / 2.0, newHeight / 2.0);
+        transform.rotate(Math.toRadians(angle));
+        transform.translate(-width / 2.0, -height / 2.0);
+    
+        // Draw the rotated image
+        g2d.drawImage(originalImage, transform, null);
+        g2d.dispose();
+    
+        // Update the image label with the rotated image
+        ImageIcon rotatedIcon = new ImageIcon(rotatedImage);
+        imageLabel.setIcon(rotatedIcon);
+    
+        // Update the internal width and height
+        width = newWidth;
+        height = newHeight;
+    
+        // Update the bounds of the label to accommodate the new image size
+        imageLabel.setBounds(x, y, width, height);
+        imageLabel.getParent().revalidate();
+        imageLabel.getParent().repaint();
     }
 
     public JLabel getImageLabel() {
