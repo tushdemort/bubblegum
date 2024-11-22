@@ -4,11 +4,10 @@ import java.lang.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
-
 public class DrawingTester {
     public static double totalArea = 0; 
     private static JLabel totalAreaLabel;
-    private static List<DrawingPanel> floors = new ArrayList<>();
+    public static List<DrawingPanel> floors = new ArrayList<>();
     private static JPanel sidebarPanel;
     private static JPanel mainPanel;
     private static int currentFloor = 0;
@@ -16,7 +15,6 @@ public class DrawingTester {
     public static void main(String[] args) {
         // Set the look and feel to system default
         try {
-            
             // UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             e.printStackTrace();
@@ -82,8 +80,8 @@ public class DrawingTester {
                 
                 if(lengthString != null && breadthString != null) {
                     try {
-                        int length = Integer.parseInt(lengthString);
-                        int breadth = Integer.parseInt(breadthString);
+                        int length = Integer.parseInt(lengthString)*10;
+                        int breadth = Integer.parseInt(breadthString)*10;
                         if(length > 0 && breadth > 0) {
                             Color color = JColorChooser.showDialog(f, "Choose a color for the shape", Color.BLACK);
                             if (color != null) {
@@ -130,7 +128,18 @@ public class DrawingTester {
         f.setVisible(true);
     }
 
-    // Other methods remain the same...
+    // Method to refresh the UI
+    public static void refreshUI() {
+        sidebarPanel.removeAll();
+        addNewFloorButton();
+        for (int i = 0; i < floors.size(); i++) {
+            addFloorButton("Floor " + (i + 1), i);
+        }
+        switchToFloor(currentFloor);
+        sidebarPanel.revalidate();
+        sidebarPanel.repaint();
+    }
+
     private static void addFloorButton(String text, int floorIndex) {
         JButton floorButton = new JButton(text);
         floorButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -180,7 +189,7 @@ public class DrawingTester {
     }
 
     private static void updateTotalArea(int length, int breadth) {
-        totalArea += length * breadth/100;
+        totalArea += length * breadth / 100;
         totalAreaLabel.setText("Total Floor Area: " + totalArea + " sq.ft");
     }
 

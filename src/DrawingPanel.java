@@ -28,7 +28,7 @@ public class DrawingPanel extends JPanel {
         JMenuItem loadFile  = new JMenuItem("Load File");
         JMenuItem clearAllShapes = new JMenuItem("Clear All Shapes");
         saveFile.addActionListener(new SaveActionListner(shapes,this));
-        loadFile.addActionListener(new LoadActionListener(shapes,this));
+        loadFile.addActionListener(new LoadActionListener(this));
         // clearAllShapes.addActionListener(new clearallListener(shapes,this));
         clearAllShapes.addActionListener(new ActionListener() {
             @Override
@@ -167,8 +167,8 @@ public class DrawingPanel extends JPanel {
         String newLabel = JOptionPane.showInputDialog(this,"Enter the new label:");
         if(lengthString != null && breadthString != null && newLabel != null){
             Color color = JColorChooser.showDialog(this, "Choose a color for the shape", Color.BLACK);
-            int length = Integer.parseInt(lengthString);
-            int breadth = Integer.parseInt(breadthString);
+            int length = Integer.parseInt(lengthString)*10;
+            int breadth = Integer.parseInt(breadthString)*10;
 
             newRoom = new Shape(breadth, length, newX, newY, color, newLabel);
         }
@@ -318,8 +318,12 @@ class SaveActionListner implements ActionListener{
         UIManager.put("OptionPane.background", new Color(50,50,50));
         UIManager.put("Panel.background", new Color(50,50,50));
         UIManager.put("InternalFrame.background", new Color(50,50,50));
+        System.out.println(DrawingTester.floors.size());
+        List<List<Map<String, Object>>> savefile = new ArrayList<>();
+        for (DrawingPanel p : DrawingTester.floors){    
+        // System.out.println(p.shapes);
         List<Map<String, Object>> data = new ArrayList<>();
-        for (Shape s : shapes){
+        for (Shape s : p.shapes){
             Map<String, Object> obj1 = new HashMap<>();
             obj1.put("x",String.valueOf(s.x));
             obj1.put("y",String.valueOf(s.y));
@@ -330,12 +334,14 @@ class SaveActionListner implements ActionListener{
             obj1.put("room_label",String.valueOf(s.room_label));
             data.add(obj1);
 
+            }
+            savefile.add(data);
         }
         try {
             String filename = JOptionPane.showInputDialog(drawingPanel, "Enter the filename to save the file as:");
             boolean extension = filename.endsWith(".rmap");
             if (extension){
-                RMapFile.writeRMap(filename, data);
+                RMapFile.writeRMap(filename, savefile);
                 JOptionPane.showMessageDialog(null, "File saved successfully", "Success", JOptionPane.INFORMATION_MESSAGE);  
             }
             else{
@@ -360,12 +366,16 @@ class SaveActionListner implements ActionListener{
 //     public void actionPerformed(ActionEvent e)
 // }
 class LoadActionListener implements  ActionListener{
-    private java.util.List<Shape> shapes;
+    // private java.util.List<Shape> shapes;
     private DrawingPanel drawingPanel;
+    // private DrawingTester drawingTester;
 
-    public LoadActionListener(java.util.List<Shape> shapes, DrawingPanel drawingPanel){
-        this.shapes = shapes;
+
+    public LoadActionListener(DrawingPanel drawingPanel) {
+        // this.shapes = shapes;
         this.drawingPanel = drawingPanel;
+        // this.drawingTester = drawingTester;
+
     }
 
     @Override
@@ -383,18 +393,28 @@ class LoadActionListener implements  ActionListener{
         String filename = JOptionPane.showInputDialog(drawingPanel, "Enter the filename to load the file from:");
         boolean extension = filename.endsWith(".rmap");
         if (extension){
-            List<Map<String, Object>> readData = RMapFile.readRMap(filename);
-            shapes.clear();
-        for (Map<String, Object> obj : readData){
-            int x = Integer.parseInt((String) obj.get("x"));
-            int y = Integer.parseInt((String) obj.get("y"));
-            int width = Integer.parseInt((String) obj.get("width"));
-            int height = Integer.parseInt((String) obj.get("height"));
-            // Load color from RGB value
-            Color color = new Color((int) obj.get("color"));
-            String room_label = (String) obj.get("room_label");
-            shapes.add(new Shape(width, height, x, y, color, room_label));
+            List<List<Map<String, Object>>> readData = RMapFile.readRMap(filename);
+            DrawingTester.floors.clear();
+            System.out.println(readData);
+            for(List<Map<String,Object>> inner : readData){
+                DrawingPanel drawp = new DrawingPanel(2000, 2000);
+                drawp.setBackground(new Color(75, 75, 75));
+                drawp.shapes = new ArrayList<>();            
+                        for (Map<String, Object> obj : inner){
+                            int x = Integer.parseInt((String) obj.get("x"));
+                            int y = Integer.parseInt((String) obj.get("y"));
+                            int width = Integer.parseInt((String) obj.get("width"));
+                            int height = Integer.parseInt((String) obj.get("height"));
+                            // Load color from RGB value
+                            Color color = new Color((int) obj.get("color"));
+                            String room_label = (String) obj.get("room_label");
+                            drawp.shapes.add(new Shape(width, height, x, y, color, room_label));
+                            }
+                DrawingTester.floors.add(drawp);
+                // drawp.repaint();
             }
+            // drawingPanel.repaint();
+            DrawingTester.refreshUI();
         }
         else{
             JOptionPane.showMessageDialog(null, "Invalid file extension", "Error", JOptionPane.ERROR_MESSAGE);  
@@ -506,8 +526,8 @@ class ResizeActionListener implements ActionListener{
         
         
         if (lengthString != null && breadthString != null){
-        int length = Integer.parseInt(lengthString);
-        int breadth = Integer.parseInt(breadthString);
+        int length = Integer.parseInt(lengthString)*10;
+        int breadth = Integer.parseInt(breadthString)*10;
         DrawingTester.updateTotalAreaLabel(drawingPanel.selectedShape.width * drawingPanel.selectedShape.height/100);
         drawingPanel.selectedShape.width = length;
         drawingPanel.selectedShape.height = breadth;
