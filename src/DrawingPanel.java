@@ -141,7 +141,7 @@ public class DrawingPanel extends JPanel {
                         repaint();
                     } else {
                         JOptionPane.showMessageDialog(
-                            this,
+                            null,
                             "Doors in bedrooms/bathrooms can only be added where there is an adjacent room.",
                             "Invalid Door Placement",
                             JOptionPane.WARNING_MESSAGE
@@ -436,6 +436,7 @@ class SaveActionListner implements ActionListener{
             // Save color as RGB values
             obj1.put("color", s.color.getRGB());
             obj1.put("room_label",String.valueOf(s.room_label));
+            obj1.put("side_modi",s.sideModification);
             data.add(obj1);
             
         }
@@ -527,10 +528,13 @@ class LoadActionListener implements  ActionListener{
                             int y = Integer.parseInt((String) obj.get("y"));
                             int width = Integer.parseInt((String) obj.get("width"));
                             int height = Integer.parseInt((String) obj.get("height"));
+                            Map<String, String> hashMap = (Map<String, String>) obj.get("side_modi");
                             // Load color from RGB value
                             Color color = new Color((int) obj.get("color"));
                             String room_label = (String) obj.get("room_label");
-                            drawp.shapes.add(new Shape(width, height, x, y, color, room_label));
+                            Shape k =new Shape(width, height, x, y, color, room_label);
+                            k.sideModification = hashMap;
+                            drawp.shapes.add(k);
                             }
                             else{
                                 
@@ -769,7 +773,7 @@ class Shape {
     public Color color;
     public String room_label;
     private java.util.List<ImageShape> linkedImages = new java.util.ArrayList<>();
-    private Map<String, String> sideModification = new HashMap<>();
+    Map<String, String> sideModification = new HashMap<>();
     public Shape(int w, int h, int x, int y, Color color, String room_label) {
         this.width = w;
         this.height = h;
@@ -777,6 +781,7 @@ class Shape {
         this.y = y;
         this.color =  color;
         this.room_label = room_label;
+
         
     }
 
