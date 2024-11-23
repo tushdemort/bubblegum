@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.*;
 import java.util.ArrayList;
@@ -74,15 +73,15 @@ public class DrawingPanel extends JPanel {
         JMenuItem shower = new JMenuItem("Bathtub");
         JMenuItem ksink = new JMenuItem("Kitchen Sink");
         JMenuItem stove = new JMenuItem("Stove");
-        bed.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/bed.png",30,20));
-        table.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/table.png",30,20));
-        sofa.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/sofa.png",30,20));
-        dining.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/dining.png",30,20));
-        commode.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/commode.png",30,20));
-        basin.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/basin.png",30,20));
-        shower.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/bathtub.png",30,20));
+        bed.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/bed.png",50,50));
+        table.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/table.png",70,70));
+        sofa.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/sofa.png",60,60));
+        dining.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/dining.png",70,70));
+        commode.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/commode.png",40,40));
+        basin.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/basin.png",35,35));
+        shower.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/bathtub.png",40,40));
         ksink.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/kink.png",60,60));
-        stove.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/stove.png",30,20));
+        stove.addActionListener(new FixtureAddActionListner(fixtures,this,"assets/stove.png",60,60));
         addFixture.add(bed);
         addFixture.add(table);
         addFixture.add(sofa);
@@ -709,7 +708,7 @@ class ImageShape {
     private JLabel imageLabel;
     private Point initialClick;
     private Image originalImage;
-
+    private double rot = 0.0;
     public ImageShape(int x, int y, int width, int height, String imagePath) {
         this.x = x;
         this.y = y;
@@ -721,9 +720,16 @@ class ImageShape {
         originalImage = originalIcon.getImage(); // Set the original image
         Image scaledImage = originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
-
         // Create a JLabel with the resized image
-        imageLabel = new JLabel(scaledIcon);
+        imageLabel = new JLabel(scaledIcon){
+            @Override
+            protected void paintComponent(Graphics g) {
+                // super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.rotate(rot, scaledIcon.getIconWidth() / 2, scaledIcon.getIconHeight() / 2);
+                g2.drawImage(scaledIcon.getImage(), 0, 0, null);
+            }
+        };
         imageLabel.setBounds(x, y, width, height);
 
         // Add mouse listeners for dragging and rotating the image
@@ -782,44 +788,9 @@ class ImageShape {
     }
 
     private void rotateImage(int angle) {
-        // Calculate the size of the rotated image to ensure full visibility
-        double radians = Math.toRadians(Math.abs(angle));
-        double sin = Math.abs(Math.sin(radians));
-        double cos = Math.abs(Math.cos(radians));
-        int newWidth = (int) (width * cos + height * sin);
-        int newHeight = (int) (width * sin + height * cos);
-    
-        // Create a rotated version of the original image
-        BufferedImage rotatedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = rotatedImage.createGraphics();
-        
-        // Set rendering hints for smoother rotation
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    
-        // Center the rotation
-        AffineTransform transform = new AffineTransform();
-        transform.translate(newWidth / 2.0, newHeight / 2.0);
-        transform.rotate(Math.toRadians(angle));
-        transform.translate(-width / 2.0, -height / 2.0);
-    
-        // Draw the rotated image
-        g2d.drawImage(originalImage, transform, null);
-        g2d.dispose();
-    
-        // Update the image label with the rotated image
-        ImageIcon rotatedIcon = new ImageIcon(rotatedImage);
-        imageLabel.setIcon(rotatedIcon);
-    
-        // Update the internal width and height
-        width = newWidth;
-        height = newHeight;
-    
-        // Update the bounds of the label to accommodate the new image size
-        imageLabel.setBounds(x, y, width, height);
-        imageLabel.getParent().revalidate();
-        imageLabel.getParent().repaint();
+        if (angle <0){rot -= Math.PI / 2;}
+        else{rot+= Math.PI/2;}
+        imageLabel.repaint();
     }
 
     public JLabel getImageLabel() {
