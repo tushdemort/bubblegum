@@ -126,6 +126,7 @@ public class DrawingPanel extends JPanel {
         popupMenu.add(editLabel);
         popupMenu.add(editColor);
         popupMenu.add(addRoomMenu);
+        // Add border modification menu
         JMenu borderMenu = new JMenu("Modify Border");
         String[] sides = {"Top", "Bottom", "Left", "Right"};
 
@@ -135,8 +136,17 @@ public class DrawingPanel extends JPanel {
             JMenuItem addDoor = new JMenuItem("Add Door");
             addDoor.addActionListener(e -> {
                 if (selectedShape != null) {
-                    selectedShape.addDoor(side);
-                    repaint();
+                    if (selectedShape.canAddDoor(side)) {
+                        selectedShape.addDoor(side);
+                        repaint();
+                    } else {
+                        JOptionPane.showMessageDialog(
+                            this,
+                            "Doors in bedrooms/bathrooms can only be added where there is an adjacent room.",
+                            "Invalid Door Placement",
+                            JOptionPane.WARNING_MESSAGE
+                        );
+                    }
                 }
             });
             
@@ -161,6 +171,8 @@ public class DrawingPanel extends JPanel {
             sideMenu.add(clearBorder);
             borderMenu.add(sideMenu);
         }
+
+        popupMenu.add(borderMenu);
 
         popupMenu.add(borderMenu);
         MouseAdapter ma = new MouseAdapter() {
@@ -758,7 +770,6 @@ class Shape {
     public String room_label;
     private java.util.List<ImageShape> linkedImages = new java.util.ArrayList<>();
     private Map<String, String> sideModification = new HashMap<>();
-
     public Shape(int w, int h, int x, int y, Color color, String room_label) {
         this.width = w;
         this.height = h;
@@ -774,48 +785,105 @@ class Shape {
         g2d.setColor(color);
         g2d.fill(new Rectangle2D.Double(x, y, width, height));
         
-        // Draw the borders with modifications
+        // Draw the black border
         g2d.setColor(Color.BLACK);
         g2d.setStroke(new BasicStroke(2));
-        g2d.draw(new Rectangle2D.Double(x, y, width, height));
         
-        // Draw border modifications
-        g2d.setColor(Color.WHITE);
-        
+        // Draw each border separately
         // Top border
         if (sideModification.getOrDefault("Top", "").equals("Gap")) {
-            g2d.drawLine(x + width/4, y, x + width*3/4, y);
+            // Draw solid black lines on the sides
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y, x + width/4, y);
+            g2d.drawLine(x + width*3/4, y, x + width, y);
+            // Draw white gap in the middle
+            g2d.setColor(Color.WHITE);
+            g2d.setStroke(new BasicStroke(4));
+            g2d.drawLine(x + width/4+2, y+2, x + width*3/4-2, y+2);
         } else if (sideModification.getOrDefault("Top", "").equals("Window")) {
+            // Draw solid black lines on the sides
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y, x + width/4, y);
+            g2d.drawLine(x + width*3/4, y, x + width, y);
+            // Draw dashed line in the middle
             float[] dashPattern = {10, 5};
-            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
             g2d.drawLine(x + width/4, y, x + width*3/4, y);
+        } else {
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y, x + width, y);
         }
         
         // Bottom border
         if (sideModification.getOrDefault("Bottom", "").equals("Gap")) {
-            g2d.drawLine(x + width/4, y + height, x + width*3/4, y + height);
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y + height, x + width/4, y + height);
+            g2d.drawLine(x + width*3/4, y + height, x + width, y + height);
+            g2d.setColor(Color.WHITE);
+            g2d.setStroke(new BasicStroke(4));
+            g2d.drawLine(x + width/4+2, y + height-2, x + width*3/4-2, y + height-2);
         } else if (sideModification.getOrDefault("Bottom", "").equals("Window")) {
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y + height, x + width/4, y + height);
+            g2d.drawLine(x + width*3/4, y + height, x + width, y + height);
             float[] dashPattern = {10, 5};
-            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
             g2d.drawLine(x + width/4, y + height, x + width*3/4, y + height);
+        } else {
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y + height, x + width, y + height);
         }
         
         // Left border
         if (sideModification.getOrDefault("Left", "").equals("Gap")) {
-            g2d.drawLine(x, y + height/4, x, y + height*3/4);
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y, x, y + height/4);
+            g2d.drawLine(x, y + height*3/4, x, y + height);
+            g2d.setColor(Color.WHITE);
+            g2d.setStroke(new BasicStroke(4));
+            g2d.drawLine(x+2, y + height/4+2, x+2, y + height*3/4-2);
         } else if (sideModification.getOrDefault("Left", "").equals("Window")) {
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y, x, y + height/4);
+            g2d.drawLine(x, y + height*3/4, x, y + height);
             float[] dashPattern = {10, 5};
-            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
             g2d.drawLine(x, y + height/4, x, y + height*3/4);
+        } else {
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x, y, x, y + height);
         }
         
         // Right border
         if (sideModification.getOrDefault("Right", "").equals("Gap")) {
-            g2d.drawLine(x + width, y + height/4, x + width, y + height*3/4);
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x + width, y, x + width, y + height/4);
+            g2d.drawLine(x + width, y + height*3/4, x + width, y + height);
+            g2d.setColor(Color.WHITE);
+            g2d.setStroke(new BasicStroke(4));
+            g2d.drawLine(x + width-2, y + height/4+2, x + width-2, y + height*3/4-2);
         } else if (sideModification.getOrDefault("Right", "").equals("Window")) {
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x + width, y, x + width, y + height/4);
+            g2d.drawLine(x + width, y + height*3/4, x + width, y + height);
             float[] dashPattern = {10, 5};
-            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
             g2d.drawLine(x + width, y + height/4, x + width, y + height*3/4);
+        } else {
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x + width, y, x + width, y + height);
         }
         
         // Draw the room label
@@ -825,7 +893,7 @@ class Shape {
         int y_label = y + ((height - g2d.getFontMetrics().getHeight()) / 2) + g2d.getFontMetrics().getAscent();
         g2d.drawString(room_label, x_label, y_label);
     }
-
+    
     public boolean contains(Point p) {
         return p.x >= x && p.x <= x + width && p.y >= y && p.y <= y + height;
     }
@@ -836,9 +904,54 @@ class Shape {
         for (ImageShape linkedImage : linkedImages) {
             linkedImage.translate(dx, dy);
         }
+    }public boolean canAddDoor(String side) {
+        // Check if the room is a bedroom or bathroom
+        if (room_label.toLowerCase().contains("bedroom") || 
+            room_label.toLowerCase().contains("bathroom")) {
+            
+            // Get coordinates of the side where we want to add the door
+            Rectangle sideBounds = getSideBounds(side);
+            
+            // Check if there's an adjacent room on this side
+            boolean hasAdjacentRoom = false;
+            for (Shape other : DrawingTester.floors.get(DrawingTester.getCurrentFloor()).shapes) {
+                if (other != this) {
+                    Rectangle otherBounds = new Rectangle(other.x, other.y, other.width, other.height);
+                    if (sideBounds.intersects(otherBounds)) {
+                        hasAdjacentRoom = true;
+                        break;
+                    }
+                }
+            }
+            
+            return hasAdjacentRoom;
+        }
+        
+        // For non-bedroom/bathroom rooms, always allow doors
+        return true;
     }
+
+    private Rectangle getSideBounds(String side) {
+        // Create a thin rectangle along the specified side
+        int tolerance = 2; // Tolerance for intersection detection
+        switch (side) {
+            case "Top":
+                return new Rectangle(x, y - tolerance, width, tolerance * 2);
+            case "Bottom":
+                return new Rectangle(x, y + height - tolerance, width, tolerance * 2);
+            case "Left":
+                return new Rectangle(x - tolerance, y, tolerance * 2, height);
+            case "Right":
+                return new Rectangle(x + width - tolerance, y, tolerance * 2, height);
+            default:
+                return new Rectangle();
+        }
+    }
+
     public void addDoor(String side) {
-        sideModification.put(side, "Gap");
+        if (canAddDoor(side)) {
+            sideModification.put(side, "Gap");
+        }
     }
 
     public void addWindow(String side) {
@@ -848,7 +961,6 @@ class Shape {
     public void clearModification(String side) {
         sideModification.remove(side);
     }
-
     public void addLinkedImage(ImageShape imageShape) {
         this.linkedImages.add(imageShape);
     }

@@ -202,4 +202,7 @@ public class DrawingTester {
         totalArea = 0;
         totalAreaLabel.setText("Total Floor Area: " + totalArea + " sq.ft");
     }
+    public static int getCurrentFloor() {
+        return currentFloor;
+    }
 }
