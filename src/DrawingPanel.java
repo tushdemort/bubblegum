@@ -47,6 +47,9 @@ public class DrawingPanel extends JPanel {
                 int option = JOptionPane.showConfirmDialog(DrawingPanel.this, "Are you sure you want to clear all shapes?", "Clear All Shapes", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (option == JOptionPane.OK_OPTION) {
                     shapes.clear();
+                    for(ImageShape s:fixtures){
+                        s.DeleteListener();
+                    }
                     DrawingTester.setzeroArea();
                     repaint();
                 }
@@ -567,16 +570,18 @@ class FixtureAddActionListner implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Provide the correct path to the image
-        // String imagePath = "src/resources/sofa.png";
         Shape originalShape = drawingPanel.selectedShape;
-        ImageShape imageShape = new ImageShape(originalShape.x-1, originalShape.y+1, w, h, path);
-
-        if (imageShape.getImage() == null) {
-            System.out.println("Image not found: " + path);
+        if (originalShape != null) {
+            ImageShape imageShape = new ImageShape(originalShape.x - 1, originalShape.y + 1, w, h, path);
+            if (imageShape.getImage() == null) {
+                System.out.println("Image not found: " + path);
+            } else {
+                System.out.println("Image loaded successfully: " + path);
+                drawingPanel.addImageShape(imageShape);
+                originalShape.addLinkedImage(imageShape); // Link the image to the shape
+            }
         } else {
-            System.out.println("Image loaded successfully: " + path);
-            drawingPanel.addImageShape(imageShape);
+            JOptionPane.showMessageDialog(drawingPanel, "Please select a shape to add a fixture to.", "No Shape Selected", JOptionPane.WARNING_MESSAGE);
         }
     }
 }
@@ -672,7 +677,7 @@ class Shape {
     int x_label, y_label;
     public Color color;
     public String room_label;
-
+    private java.util.List<ImageShape> linkedImages = new java.util.ArrayList<>();
     public Shape(int w, int h, int x, int y, Color color, String room_label) {
         this.width = w;
         this.height = h;
@@ -700,6 +705,12 @@ class Shape {
     public void translate(int dx, int dy) {
         x += dx;
         y += dy;
+        for (ImageShape linkedImage : linkedImages) {
+            linkedImage.translate(dx, dy);
+        }
+    }
+    public void addLinkedImage(ImageShape imageShape) {
+        this.linkedImages.add(imageShape);
     }
 }
 class ImageShape {
@@ -745,11 +756,7 @@ class ImageShape {
                     JMenuItem rotateLeftItem = new JMenuItem("Rotate Left");
                     JMenuItem rotateRightItem = new JMenuItem("Rotate Right");
 
-                    deleteItem.addActionListener(event -> {
-                        Container parent = imageLabel.getParent();
-                        parent.remove(imageLabel);
-                        parent.repaint();
-                    });
+                    deleteItem.addActionListener(event -> DeleteListener());
 
                     rotateLeftItem.addActionListener(event -> rotateImage(-90));
                     rotateRightItem.addActionListener(event -> rotateImage(90));
@@ -780,11 +787,18 @@ class ImageShape {
                     int nextY = thisY + yMoved;
 
                     // Set the label to the new position
+                    ImageShape.this.x = nextX;
+                    ImageShape.this.y = nextY;
                     imageLabel.setLocation(nextX, nextY);
                     imageLabel.getParent().repaint();
                 }
             }
         });
+    }
+    public void translate(int dx, int dy) {
+        x += dx;
+        y += dy;
+        imageLabel.setLocation(x, y);
     }
 
     private void rotateImage(int angle) {
@@ -799,5 +813,12 @@ class ImageShape {
 
     public Image getImage() {
         return new ImageIcon(imageLabel.getIcon().toString()).getImage();
+    }
+    public void DeleteListener(){
+        
+            Container parent = imageLabel.getParent();
+            parent.remove(imageLabel);
+            parent.repaint();
+        
     }
 }
