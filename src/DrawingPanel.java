@@ -126,6 +126,43 @@ public class DrawingPanel extends JPanel {
         popupMenu.add(editLabel);
         popupMenu.add(editColor);
         popupMenu.add(addRoomMenu);
+        JMenu borderMenu = new JMenu("Modify Border");
+        String[] sides = {"Top", "Bottom", "Left", "Right"};
+
+        for (String side : sides) {
+            JMenu sideMenu = new JMenu(side);
+            
+            JMenuItem addDoor = new JMenuItem("Add Door");
+            addDoor.addActionListener(e -> {
+                if (selectedShape != null) {
+                    selectedShape.addDoor(side);
+                    repaint();
+                }
+            });
+            
+            JMenuItem addWindow = new JMenuItem("Add Window");
+            addWindow.addActionListener(e -> {
+                if (selectedShape != null) {
+                    selectedShape.addWindow(side);
+                    repaint();
+                }
+            });
+            
+            JMenuItem clearBorder = new JMenuItem("Clear");
+            clearBorder.addActionListener(e -> {
+                if (selectedShape != null) {
+                    selectedShape.clearModification(side);
+                    repaint();
+                }
+            });
+            
+            sideMenu.add(addDoor);
+            sideMenu.add(addWindow);
+            sideMenu.add(clearBorder);
+            borderMenu.add(sideMenu);
+        }
+
+        popupMenu.add(borderMenu);
         MouseAdapter ma = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -678,6 +715,8 @@ class Shape {
     public Color color;
     public String room_label;
     private java.util.List<ImageShape> linkedImages = new java.util.ArrayList<>();
+    private Map<String, String> sideModification = new HashMap<>();
+
     public Shape(int w, int h, int x, int y, Color color, String room_label) {
         this.width = w;
         this.height = h;
@@ -685,17 +724,64 @@ class Shape {
         this.y = y;
         this.color =  color;
         this.room_label = room_label;
+        
     }
 
     public void draw(Graphics2D g2d) {
+        // Fill the rectangle
         g2d.setColor(color);
         g2d.fill(new Rectangle2D.Double(x, y, width, height));
-        g2d.setColor(color.BLACK);
+        
+        // Draw the borders with modifications
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(2));
         g2d.draw(new Rectangle2D.Double(x, y, width, height));
+        
+        // Draw border modifications
+        g2d.setColor(Color.WHITE);
+        
+        // Top border
+        if (sideModification.getOrDefault("Top", "").equals("Gap")) {
+            g2d.drawLine(x + width/4, y, x + width*3/4, y);
+        } else if (sideModification.getOrDefault("Top", "").equals("Window")) {
+            float[] dashPattern = {10, 5};
+            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.drawLine(x + width/4, y, x + width*3/4, y);
+        }
+        
+        // Bottom border
+        if (sideModification.getOrDefault("Bottom", "").equals("Gap")) {
+            g2d.drawLine(x + width/4, y + height, x + width*3/4, y + height);
+        } else if (sideModification.getOrDefault("Bottom", "").equals("Window")) {
+            float[] dashPattern = {10, 5};
+            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.drawLine(x + width/4, y + height, x + width*3/4, y + height);
+        }
+        
+        // Left border
+        if (sideModification.getOrDefault("Left", "").equals("Gap")) {
+            g2d.drawLine(x, y + height/4, x, y + height*3/4);
+        } else if (sideModification.getOrDefault("Left", "").equals("Window")) {
+            float[] dashPattern = {10, 5};
+            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.drawLine(x, y + height/4, x, y + height*3/4);
+        }
+        
+        // Right border
+        if (sideModification.getOrDefault("Right", "").equals("Gap")) {
+            g2d.drawLine(x + width, y + height/4, x + width, y + height*3/4);
+        } else if (sideModification.getOrDefault("Right", "").equals("Window")) {
+            float[] dashPattern = {10, 5};
+            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, dashPattern, 0));
+            g2d.drawLine(x + width, y + height/4, x + width, y + height*3/4);
+        }
+        
+        // Draw the room label
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(1));
         int x_label = x + (width - g2d.getFontMetrics().stringWidth(room_label)) / 2;
         int y_label = y + ((height - g2d.getFontMetrics().getHeight()) / 2) + g2d.getFontMetrics().getAscent();
         g2d.drawString(room_label, x_label, y_label);
-
     }
 
     public boolean contains(Point p) {
@@ -709,6 +795,18 @@ class Shape {
             linkedImage.translate(dx, dy);
         }
     }
+    public void addDoor(String side) {
+        sideModification.put(side, "Gap");
+    }
+
+    public void addWindow(String side) {
+        sideModification.put(side, "Window");
+    }
+
+    public void clearModification(String side) {
+        sideModification.remove(side);
+    }
+
     public void addLinkedImage(ImageShape imageShape) {
         this.linkedImages.add(imageShape);
     }
