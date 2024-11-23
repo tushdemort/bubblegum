@@ -415,6 +415,8 @@ class SaveActionListner implements ActionListener{
         List<Map<String, Object>> data = new ArrayList<>();
         for (Shape s : p.shapes){
             Map<String, Object> obj1 = new HashMap<>();
+            
+            obj1.put("type", "shape");
             obj1.put("x",String.valueOf(s.x));
             obj1.put("y",String.valueOf(s.y));
             obj1.put("width",String.valueOf(s.width));
@@ -423,8 +425,19 @@ class SaveActionListner implements ActionListener{
             obj1.put("color", s.color.getRGB());
             obj1.put("room_label",String.valueOf(s.room_label));
             data.add(obj1);
+            
+        }
+        for (ImageShape is: p.fixtures){
+            Map<String, Object> obj1 = new HashMap<>();
+            obj1.put("type", "fixture");
+            obj1.put("x", is.x);
+            obj1.put("y", is.y);
+            obj1.put("width", is.width);
+            obj1.put("height", is.height);
+            obj1.put("path", is.getPath());
+            data.add(obj1);
 
-            }
+        }
             savefile.add(data);
         }
         try {
@@ -485,12 +498,19 @@ class LoadActionListener implements  ActionListener{
         if (extension){
             List<List<Map<String, Object>>> readData = RMapFile.readRMap(filename);
             DrawingTester.floors.clear();
-            System.out.println(readData);
+            // System.out.println(readData);
+            for (ImageShape i: drawingPanel.fixtures){
+                i.DeleteListener();
+            }
             for(List<Map<String,Object>> inner : readData){
                 DrawingPanel drawp = new DrawingPanel(2000, 2000);
                 drawp.setBackground(new Color(75, 75, 75));
-                drawp.shapes = new ArrayList<>();            
+                drawp.shapes = new ArrayList<>();
+                drawp.fixtures = new ArrayList<>();
+                            
                         for (Map<String, Object> obj : inner){
+                            String type = (String) obj.get("type");
+                            if ("shape".equals(type)){
                             int x = Integer.parseInt((String) obj.get("x"));
                             int y = Integer.parseInt((String) obj.get("y"));
                             int width = Integer.parseInt((String) obj.get("width"));
@@ -500,6 +520,28 @@ class LoadActionListener implements  ActionListener{
                             String room_label = (String) obj.get("room_label");
                             drawp.shapes.add(new Shape(width, height, x, y, color, room_label));
                             }
+                            else{
+                                
+                            }
+                        }for (Map<String, Object> obj : inner){
+                            String type = (String) obj.get("type");
+                            if ("fixture".equals(type)){
+                                int x = (int) obj.get("x");
+                                int y = (int) obj.get("y");
+                                int width = (int) obj.get("width");
+                                int height = (int) obj.get("height");
+                                String path = (String) obj.get("path");
+                                ImageShape imageShape = new ImageShape(x, y, width, height, path);
+                                // drawp.fixtures.add(imageShape);
+                                drawp.add(imageShape.getImageLabel());
+                                for (Shape shape : drawp.shapes) {
+                                    if (shape.contains(new Point(x, y))) {
+                                        shape.addLinkedImage(imageShape);
+                                        break; // Assuming each fixture only belongs to one shape
+                                    }
+                                }
+                            }
+                        }
                 DrawingTester.floors.add(drawp);
                 // drawp.repaint();
             }
@@ -609,7 +651,7 @@ class FixtureAddActionListner implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Shape originalShape = drawingPanel.selectedShape;
         if (originalShape != null) {
-            ImageShape imageShape = new ImageShape(originalShape.x - 1, originalShape.y + 1, w, h, path);
+            ImageShape imageShape = new ImageShape(originalShape.x, originalShape.y, w, h, path);
             if (imageShape.getImage() == null) {
                 System.out.println("Image not found: " + path);
             } else {
@@ -812,17 +854,19 @@ class Shape {
     }
 }
 class ImageShape {
-    private int x, y;
-    private int width, height;
-    private JLabel imageLabel;
-    private Point initialClick;
-    private Image originalImage;
-    private double rot = 0.0;
+    int x, y;
+    int width, height;
+    JLabel imageLabel;
+    Point initialClick;
+    Image originalImage;
+    double rot = 0.0;
+    String path;
     public ImageShape(int x, int y, int width, int height, String imagePath) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.path = imagePath;
 
         // Load and resize the image to match the specified width and height
         ImageIcon originalIcon = new ImageIcon(imagePath);
@@ -918,5 +962,8 @@ class ImageShape {
             parent.remove(imageLabel);
             parent.repaint();
         
+    }
+    public String getPath(){
+        return this.path;
     }
 }
